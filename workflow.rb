@@ -56,7 +56,7 @@ module ExTRI2
     log :sentences, "Loading document sentences"
     documents.sentences
 
-    tsv = TSV::Dumper.new(:key_field => "SentenceID", :fields => ["Text", "TF", "Gene", "TF Id", "IG Id", "TF offset", "Gene offset", "Mutated Genes"], :type => :list)
+    tsv = TSV::Dumper.new(:key_field => "SentenceID", :fields => ["Text", "TF", "Gene", "TF Id", "IG Id", "TF offset", "Gene offset", "Mutated Genes", "Mutation offsets"], :type => :list)
     tsv.init
     TSV.traverse docids, :bar => self.progress_bar("Procesing documents for TRI candidates"), into: tsv do |docid|
       doc = docid.document
@@ -73,7 +73,7 @@ module ExTRI2
 
         mutated_genes = sentence_mutations.collect do |m| 
           m.code.split(";").
-            select{|e| e.include?("Gene") }.
+            select{|e| e.include?("CorrespondingGene") }.
             collect{|e| e.split(":").last }
         end.flatten
 
@@ -88,7 +88,7 @@ module ExTRI2
                 Transformed.with_transform(sentence, gene, "[TG]") do
                   raise if sentence.include?("\n")
                   id = [docid, i, tf, gene] * ":"
-                  res << [id, [sentence.dup.gsub("\n", " ").strip, tf, gene, tf.code, gene.code,tf.offset.to_s,gene.offset.to_s, mutated_genes * ";"]]
+                  res << [id, [sentence.dup.gsub("\n", " ").strip, tf, gene, tf.code, gene.code,tf.offset.to_s,gene.offset.to_s, mutated_genes * ";", sentence_mutations.collect{|m| m.offset } * ";"]]
                 end
               end
             end
@@ -130,7 +130,6 @@ module ExTRI2
     model.init
 
     predictions = model.eval_list tsv.slice(["Text", "TF", "Gene"]).values
-
     tsv.add_field "Valid" do 
       predictions.shift == 1 ? 'Valid' : 'Not valid'
     end
@@ -143,7 +142,6 @@ module ExTRI2
   task :tri_MoR => :tsv do |mor_model|
 
     tsv = step(:tri_sentences).load
-
     mor_model = Rbbt.models[mor_model].find unless File.exist?(mor_model)
     model = HuggingfaceModel.new 'SequenceClassification', mor_model, nil,
       :tokenizer_args => {:model_max_length => 512, :truncation => true},

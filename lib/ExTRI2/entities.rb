@@ -16,6 +16,7 @@ Document.define :pubtator => :single do |dir|
   pmid = self.code
   dir[pmid].read.split("\n").collect do |line|
     _id, start, eend, literal, type, code = line.split("\t")
+    code.gsub!('|','-') if code
     NamedEntity.setup(literal, offset: start, code: code, entity_type: type)
   end
 end
@@ -25,7 +26,7 @@ Document.define :genes => :single do |dir|
 end
 
 Document.define :mutations => :single do |dir|
-  pubtator(dir).select{|e| e.entity_type == "ProteinMutation" || e.entity_type == "DNAMutation" }
+  pubtator(dir).select{|e| e.entity_type == "ProteinMutation" || e.entity_type == "DNAMutation" || e.entity_type == "SNP" }
 end
 
 Document.define :tfs => :single do |dir|
@@ -50,7 +51,7 @@ end
 Document.persist :sentences, :annotations, annotation_repo: ExTRI2::ANNOTATION_REPO
 Document.persist :genes, :annotations, annotation_repo: ExTRI2::ANNOTATION_REPO
 Document.persist :tfs, :annotations, annotation_repo: ExTRI2::ANNOTATION_REPO
-Document.persist :mutations, :annotations, annotation_repo: ExTRI2::ANNOTATION_REPO
+Document.persist :mutations, :annotations
 
 if __FILE__ == $0
   require 'rbbt/workflow'
