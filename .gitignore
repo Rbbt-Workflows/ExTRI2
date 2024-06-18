@@ -4,3 +4,6 @@ pkg
 .crap
 data/.source
 data/pubtator
+tmp
+wandb
+__pycache__
