@@ -113,7 +113,7 @@ module ExTRI2
     TSV.concat_streams(dependencies)
   end
 
-  dep :all_candidates
+  dep :tri_candidates
   input :tri_model, :string, "TRI model to load", "BioLinkBERT_SPAN_TRI"
   task :tri_sentences => :tsv do |tri_model|
 
@@ -175,7 +175,15 @@ module ExTRI2
 
     tsv
   end
-  dep_task :ExTRI2, self, :tri_MoR
+
+  dep :tri_MoR, pubtator_file: :placeholder, compute: :produce  do |jobname,options|
+    Rbbt.data.pubtator.glob("*.pubtator").collect do |file|
+      {task: :tri_MoR, inputs: options.merge(:pubtator_file => file)}
+    end
+  end
+  task :ExTRI2 => :tsv do
+    TSV.concat_streams(dependencies)
+  end
 
 end
 require 'ExTRI2/entities'
