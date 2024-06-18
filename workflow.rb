@@ -55,6 +55,10 @@ module ExTRI2
     documents = docids.document
     log :sentences, "Loading document sentences"
     documents.sentences
+    log :entities, "Loading document entities"
+    documents.genes(dir)
+    documents.tfs(dir)
+    documents.mutations(dir)
 
     tsv = TSV::Dumper.new(:key_field => "SentenceID", :fields => ["Text", "TF", "Gene", "TF Id", "IG Id", "TF offset", "Gene offset", "Mutated Genes", "Mutation offsets"], :type => :list)
     tsv.init
@@ -118,7 +122,8 @@ module ExTRI2
     tri_model = Rbbt.models[tri_model].find unless File.exist?(tri_model)
 
     model = HuggingfaceModel.new 'SequenceClassification', tri_model, nil,
-      :tokenizer_args => {:model_max_length => 512, :truncation => true}
+      :tokenizer_args => {:model_max_length => 512, :truncation => true},
+      :return_logits => true
 
     model.extract_features do |_,feature_list|
       feature_list.collect do |text,tf,tg|
@@ -130,8 +135,14 @@ module ExTRI2
     model.init
 
     predictions = model.eval_list tsv.slice(["Text", "TF", "Gene"]).values
-    tsv.add_field "Valid" do 
-      predictions.shift == 1 ? 'Valid' : 'Not valid'
+
+    tsv.add_field "Valid score" do 
+      non_valid, valid = predictions.shift
+      Misc.softmax([valid, non_valid]).first
+    end
+
+    tsv.add_field "Valid" do |k,values|
+      values.last > 0.5 ? "Valid" : "Non valid"
     end
 
     tsv
