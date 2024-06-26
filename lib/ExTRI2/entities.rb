@@ -48,10 +48,13 @@ Document.define_multiple :sentences do |list|
   end
 end
 
-Document.persist :sentences, :annotations, annotation_repo: ExTRI2::ANNOTATION_REPO
-Document.persist :genes, :annotations, annotation_repo: ExTRI2::ANNOTATION_REPO
-Document.persist :tfs, :annotations, annotation_repo: ExTRI2::ANNOTATION_REPO
-Document.persist :mutations, :annotations
+#Document.persist :sentences, :annotations, annotation_repo: ExTRI2::ANNOTATION_REPO
+#Document.persist :genes, :annotations, annotation_repo: ExTRI2::ANNOTATION_REPO
+#Document.persist :tfs, :annotations, annotation_repo: ExTRI2::ANNOTATION_REPO
+Document.persist :sentences, :annotations
+Document.persist :genes, :memory
+Document.persist :tfs, :memory
+Document.persist :mutations, :memory
 
 if __FILE__ == $0
   require 'rbbt/workflow'
