@@ -91,7 +91,7 @@ module ExTRI2
               Transformed.with_transform(sentence, tf, "[TF]") do
                 Transformed.with_transform(sentence, gene, "[TG]") do
                   raise if sentence.include?("\n")
-                  id = [docid, i, tf, gene] * ":"
+                  id = [docid, i, tf, gene, tf.offset, gene.offset] * ":"
                   res << [id, [sentence.dup.gsub("\n", " ").strip, tf, gene, tf.code, gene.code,tf.offset.to_s,gene.offset.to_s, mutated_genes * ";", sentence_mutations.collect{|m| m.offset } * ";"]]
                 end
               end
@@ -188,7 +188,8 @@ module ExTRI2
 end
 require 'ExTRI2/entities'
 
-#require 'ExTRI2/tasks/basic.rb'
+
+require 'ExTRI2/tasks/human.rb'
 
 #require 'rbbt/knowledge_base/ExTRI2'
 #require 'rbbt/entity/ExTRI2'
