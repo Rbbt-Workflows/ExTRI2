@@ -5,6 +5,9 @@ ExTRI2=/$PWD filter="*.rb *.rake Rakefile *.rdoc *.R *.sh *.js *.haml *.sass *.t
  lib=lib {
   ExTRI2=ExTRI2{
    entities.rb
+   tasks=tasks{
+    human.rb
+   }
   }
  }
  test=test {

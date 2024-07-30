@@ -1,7 +1,10 @@
 require 'rbbt/sources/organism'
 module ExTRI2
 
-  task :to_human => :tsv do
+  input :name, :string, "Taxa name", "Human", required: true
+  input :taxa, :string, "Taxa codes, separated by commas", "9606", required: true
+  task :to_taxa => :tsv do |name, taxa|
+    taxa = taxa.split(",").collect{|t| t.strip }
 
     ids ={}
     TSV.traverse "https://ftp.ncbi.nih.gov/pub/HomoloGene/last-archive/homologene.data", :type => :array do |line|
@@ -9,26 +12,33 @@ module ExTRI2
       ids[hid]||=[tax, id]
       ids[hid]<<[tax, id]
     end
-    index = TSV.setup({}, :key_field => "Entrez Gene ID", :fields =>["Human(Entrez Gene ID)"], :type => :single)
+    index = TSV.setup({}, :key_field => "Entrez Gene ID", :fields =>["#{name} (Entrez Gene ID)"], :type => :single)
     ids.each do |hid, pairs|
-      tax, human = pairs.select{|p| p[0]== "9606"}.first
-      next if human.nil?
+      tax, translated = pairs.select{|p| taxa.include?(p[0]) }.first
+      next if translated.nil?
       pairs.each do |tax,id|
-        index[id]= human
+        index[id]= translated
       end
 
     end
     index
   end
 
+  task_alias :to_human, ExTRI2, :to_taxa, name: "Human", taxa: "9606"
 
-  dep :to_human
   input :original, :file, "ExTRI2 main result", nil, :nofile => true
-  task :ExTRI2_human => :tsv do |original|
+  input :organism, :string, "Organism code", "Hsa/feb2014"
+  dep :to_taxa, name: :placeholder, taxa: :placeholder do |jobname,options|
+    organism = options[:organism]
+    taxa = Organism.entrez_taxids(organism).list * ","
+    name = organism.split("/").first
+    {inputs: options.merge(name: name, taxa: taxa)}
+  end
+  task :ExTRI2_taxa => :tsv do |original,organism|
 
-    to_human = step(:to_human).load
+    to_human = step(:to_taxa).load
 
-    entrez2name = Organism.identifiers("Hsa/feb2014").index :target => "Associated Gene Name", :fields =>["Entrez Gene ID"], persist: true
+    entrez2name = Organism.identifiers(organism).index :target => "Associated Gene Name", :fields =>["Entrez Gene ID"], persist: true
     parser = TSV::Parser.new original
     dumper = TSV::Dumper.new parser.options
     dumper.init
@@ -62,6 +72,8 @@ module ExTRI2
       [k, [text, tf, tg, tf_name, tg_name, tf_off, tg_off, mutation, mutation_off, score, valid, mor]]
     end
   end
+
+  task_alias :ExTRI2_human, ExTRI2, :ExTRI2_taxa, organism: "Hsa/feb2014"
 
   dep :ExTRI2_human
   task :ExTRI2_clean => :tsv do
