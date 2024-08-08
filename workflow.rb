@@ -117,7 +117,7 @@ module ExTRI2
   input :tri_model, :string, "TRI model to load", "BioLinkBERT_SPAN_TRI"
   task :tri_sentences => :tsv do |tri_model|
 
-    tsv = step(:all_candidates).load
+    tsv = step(:tri_candidates).load
 
     tri_model = Rbbt.models[tri_model].find unless File.exist?(tri_model)
 
@@ -138,7 +138,11 @@ module ExTRI2
 
     tsv.add_field "Valid score" do 
       non_valid, valid = predictions.shift
-      Misc.softmax([valid, non_valid]).first
+      begin
+        Misc.softmax([valid, non_valid]).first
+      rescue
+        0
+      end
     end
 
     tsv.add_field "Valid" do |k,values|
@@ -156,7 +160,8 @@ module ExTRI2
     mor_model = Rbbt.models[mor_model].find unless File.exist?(mor_model)
     model = HuggingfaceModel.new 'SequenceClassification', mor_model, nil,
       :tokenizer_args => {:model_max_length => 512, :truncation => true},
-      :class_labels => %w(UNDEFINED ACTIVATION REPRESION)
+      :class_labels => %w(UNDEFINED ACTIVATION REPRESION),
+      :return_logits => true
 
     model.extract_features do |_,feature_list|
       feature_list.collect do |text,tf,tg|
@@ -169,8 +174,18 @@ module ExTRI2
 
     predictions = model.eval_list tsv.slice(["Text", "TF", "Gene"]).values
 
-    tsv.add_field "MoR" do 
-      predictions.shift
+    tsv.add_field "MoR scores" do 
+      preds = predictions.shift
+      begin
+        Misc.softmax(preds) * ";"
+      rescue
+        ""
+      end
+    end
+
+    tsv.add_field "MoR" do |k,values|
+      scores = values.last.split(";").collect{|v| v.to_f }
+      %w(UNDEFINED ACTIVATION REPRESION)[scores.index(scores.max)]
     end
 
     tsv
