@@ -52,12 +52,10 @@ module ExTRI2
 
     log :documents, "Loading documents"
     documents = docids.document
-    if documents.include?(nil)
-      step(:load_documents).clean
-      raise "Some documents are nil: #{docids[documents.index(nil)]}"
-    end
+
     log :sentences, "Loading document sentences"
     documents.sentences
+    
     log :entities, "Loading document entities"
     documents.genes(dir)
     documents.tfs(dir)
@@ -195,7 +193,7 @@ module ExTRI2
   end
 
   dep :tri_MoR, pubtator_file: :placeholder, compute: :produce  do |jobname,options|
-    Rbbt.data.pubtator.glob("*.pubtator")[0..2].collect do |file|
+    Rbbt.data.pubtator.glob("*.pubtator").collect do |file|
       {task: :tri_MoR, inputs: options.merge(:pubtator_file => file)}
     end
   end
