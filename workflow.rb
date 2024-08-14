@@ -36,7 +36,6 @@ module ExTRI2
 
       Document.setup(text, "PMID", pmid, :pubtator_title_and_abstract)
 
-
       file(pmid).write(entities * "\n")
 
       corpus.add_document(text)
@@ -53,6 +52,10 @@ module ExTRI2
 
     log :documents, "Loading documents"
     documents = docids.document
+    if documents.include?(nil)
+      step(:load_documents).clean
+      raise "Some documents are nil: #{docids[documents.index(nil)]}"
+    end
     log :sentences, "Loading document sentences"
     documents.sentences
     log :entities, "Loading document entities"
@@ -114,7 +117,7 @@ module ExTRI2
   end
 
   dep :tri_candidates
-  input :tri_model, :string, "TRI model to load", "BioLinkBERT_SPAN_TRI"
+  input :tri_model, :string, "TRI model to load", "TRI_model"
   task :tri_sentences => :tsv do |tri_model|
 
     tsv = step(:tri_candidates).load
@@ -153,7 +156,7 @@ module ExTRI2
   end
 
   dep :tri_sentences
-  input :mor_model, :string, "TRI model to load", "BioLinkBERT_SPAN_MoR"
+  input :mor_model, :string, "TRI model to load", "MoR_model"
   task :tri_MoR => :tsv do |mor_model|
 
     tsv = step(:tri_sentences).load
@@ -192,7 +195,7 @@ module ExTRI2
   end
 
   dep :tri_MoR, pubtator_file: :placeholder, compute: :produce  do |jobname,options|
-    Rbbt.data.pubtator.glob("*.pubtator").collect do |file|
+    Rbbt.data.pubtator.glob("*.pubtator")[0..2].collect do |file|
       {task: :tri_MoR, inputs: options.merge(:pubtator_file => file)}
     end
   end
