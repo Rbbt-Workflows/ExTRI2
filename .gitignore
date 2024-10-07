@@ -4,6 +4,14 @@ pkg
 .crap
 data/.source
 data/pubtator
+data/tmp
+data/validation
 tmp
+results
 wandb
 __pycache__
+.general_env
+
+classifiers_training/training_env/
+classifiers_training/pretrained_models/distilbert-base-uncased/
+
