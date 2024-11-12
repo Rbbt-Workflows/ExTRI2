@@ -5,10 +5,6 @@ import numpy as np
 from IPython.display import display, HTML
 import matplotlib.pyplot as plt
 
-
-
-
-
 def load_config() -> dict:
     config = {}
 

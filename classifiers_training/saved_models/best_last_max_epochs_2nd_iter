@@ -1,0 +1,12 @@
+File: MoR_723838.err Epochs: Best: 6, Last: 8, Max: 10 Classifier: MoR_classifier/BioLinkBERT_span_1fold_10e_lr3e-05
+File: MoR_723840.err Epochs: Best: 1, Last: 3, Max: 10 Classifier: MoR_classifier/BioLinkBERT_1fold_10e_lr3e-05
+File: MoR_723842.err Epochs: Best: 4, Last: 4, Max: 5 Classifier: MoR_classifier/BioLinkBERT_span_1fold_5e_lr3e-05
+File: MoR_723844.err Epochs: Best: 4, Last: 4, Max: 5 Classifier: MoR_classifier/BioLinkBERT_1fold_5e_lr3e-05
+File: MoR_723846.err Epochs: Best: 4, Last: 6, Max: 8 Classifier: MoR_classifier/BioLinkBERT_span_1fold_8e_lr3e-05
+File: MoR_723848.err Epochs: Best: 6, Last: 7, Max: 8 Classifier: MoR_classifier/BioLinkBERT_1fold_8e_lr3e-05
+File: TRI_723837.err Epochs: Best: 1, Last: 3, Max: 10 Classifier: TRI_classifier/BioLinkBERT_span_1fold_10e_lr3e-05
+File: TRI_723839.err Epochs: Best: 3, Last: 5, Max: 10 Classifier: TRI_classifier/BioLinkBERT_1fold_10e_lr3e-05
+File: TRI_723841.err Epochs: Best: 2, Last: 4, Max: 5 Classifier: TRI_classifier/BioLinkBERT_span_1fold_5e_lr3e-05
+File: TRI_723843.err Epochs: Best: 3, Last: 4, Max: 5 Classifier: TRI_classifier/BioLinkBERT_1fold_5e_lr3e-05
+File: TRI_723845.err Epochs: Best: 4, Last: 6, Max: 8 Classifier: TRI_classifier/BioLinkBERT_span_1fold_8e_lr3e-05
+File: TRI_723847.err Epochs: Best: 4, Last: 6, Max: 8 Classifier: TRI_classifier/BioLinkBERT_1fold_8e_lr3e-05

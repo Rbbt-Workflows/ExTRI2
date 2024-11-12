@@ -2,7 +2,7 @@ pkg
 .source
 .save
 .crap
-data/.source
+.vscode
 data/pubtator
 data/tmp
 data/validation
@@ -14,4 +14,11 @@ __pycache__
 
 classifiers_training/training_env/
 classifiers_training/pretrained_models/distilbert-base-uncased/
+tokenizer.json
+vocab.txt
+
+
+
+TODO.md
+
 
