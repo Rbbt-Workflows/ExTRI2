@@ -1,4 +1,5 @@
 import pandas as pd
+import numpy as np
 import math
 
 TaxID_to_species = {
@@ -21,11 +22,11 @@ def load_config() -> dict:
     TO_VALIDATE_P   = VALIDATION_P + 'to_validate/'
     VALIDATED_P     = VALIDATION_P + 'validated/'
     config['TO_VALIDATE_P'] = TO_VALIDATE_P
-
+    config['TEMP_P'] = TEMP_P
 
 
     # Results
-    config['raw_ExTRI2.gz_p']          = RESULTS_P + 'ExTRI2.tsv.gz'
+    config['raw_ExTRI2_p']          = RESULTS_P + 'ExTRI2.tsv'
     config['final_ExTRI2_p']        = RESULTS_P + 'ExTRI2_final_resource.tsv'
     config['final_validated_p']     = RESULTS_P + 'validated_sentences.tsv'
 
@@ -46,12 +47,8 @@ def load_config() -> dict:
     config['stage5_coTF_validated_p']        = VALIDATED_P + '26_08_likely_coTF_to_validate_AL.txt'
     config['stage6_coTF_validated_p']        = VALIDATED_P + '28_08_likely_coTF_to_validate_AL.txt'
     config['stage6_ll_coTF_validated_p']     = VALIDATED_P + '28_08_unlikely_coTF_to_validate_AL.txt'
-
-    # TODO - Modify this to the real path
-    config['stage7_dbTF_validated_p']        = TO_VALIDATE_P + '01_10_dbTF_to_validate.tsv'
-    config['stage7_coTF_validated_p']        = TO_VALIDATE_P + '01_10_coTF_to_validate.tsv'
-    config['stage7_ll_coTF_validated_p']     = TO_VALIDATE_P + '01_10_ll_coTF_to_validate.tsv'
-
+    config['stage7_validated_p']             = VALIDATED_P + 'stage7_to_validate_AL.txt'
+    
 
     # To validate
     # TODO - Add how were those first 3 created.
@@ -95,9 +92,7 @@ def join_all_validated_dfs(config) -> pd.DataFrame:
         's5_coTF':    load_tsv('stage5_coTF_validated_p'),
         's6_coTF':    load_tsv('stage6_coTF_validated_p'),
         's6_coTF_ll': load_tsv('stage6_ll_coTF_validated_p'),
-        's7_dbTF':    load_tsv('stage7_dbTF_validated_p'),
-        's7_coTF':    load_tsv('stage7_coTF_validated_p'),
-        's7_coTF_ll': load_tsv('stage7_ll_coTF_validated_p'),
+        's7':         load_tsv('stage7_validated_p')
     }
 
     # Drop empty rows
@@ -129,17 +124,13 @@ def join_all_validated_dfs(config) -> pd.DataFrame:
     # Add missing columns: Sentence
     validated_dfs['s1']['Sentence'] = validated_dfs['s1']['span_sentence'].str.replace(r"<TF>.*<\/TF>", "[TF]", regex=True).str.replace(r"<TG>.*<\/TG>", "[TG]", regex=True)
 
-    # Add stage column (except for stage 7, for which stage is defined below)
+    # Add stage column to each df in the dict (except for stage 7, for which stage is defined below)
     validated_dfs = {stage: (df if 's7' in stage else df.assign(stage=stage)) for stage, df in validated_dfs.items()}
 
     # Rename columns
-    for stage in ('s7_dbTF', 's7_coTF', 's7_coTF_ll'):
-        validated_dfs[stage].drop(columns=['TF_type'], inplace=True)
-        validated_dfs[stage].rename(columns={'val TF_type': 'TF_type'}, inplace=True)     
-        validated_dfs[stage]['stage'] = validated_dfs[stage]['stage'] + '_' + validated_dfs[stage]['TF_type']
-
-        # TODO - ERASE
-        validated_dfs[stage]['Valid?'] = 'T'
+    validated_dfs['s7'].drop(columns=['TF_type'], inplace=True)
+    validated_dfs['s7'].rename(columns={'val TF_type': 'TF_type'}, inplace=True)     
+    validated_dfs['s7']['stage'] = validated_dfs['s7']['stage'] + '_' + validated_dfs['s7']['TF_type']
 
     col_renamings = {'dbTF_norm': 'TF Symbol', 'Gene norm': 'TG Symbol', 'Gene': 'TG',
                  'Incorrect?': 'TF_is_incorrect', 'Incorrect?.1': 'TG_is_incorrect',
@@ -213,7 +204,7 @@ def join_validated_df_with_valid_df(validated_df, valid_df, state='prerenorm'):
 def find_remaining_validated_in_candidate_sents(non_merged_df, config, chunk_size=1_000_000):
     '''Merge the sentences not found in valid_df with ExTRI2_df more efficiently'''
 
-    candidate_sents = pd.read_csv(config['raw_ExTRI2.gz_p'], sep='\t', header=1, chunksize=chunk_size, keep_default_na=False)
+    candidate_sents = pd.read_csv(config['raw_ExTRI2_p'], sep='\t', header=1, chunksize=chunk_size, keep_default_na=False)
     
     # Create empty list to collect matches
     found_sents_list = []
@@ -318,13 +309,13 @@ def fix_NFKB_AP1_mismatches(merged_df: pd.DataFrame) -> None:
     If so, remove the 'renormalisation' error (validations were done before the NFKB/AP1 fixing)
     '''
 
-    # Get sentences validated and prerenorm sentences don't match. Use a set to ignore order in cases like 'BRAC1;BRAC2'
+    # Get sentences validated and prerenorm sentences thatdon't match. Use a set to ignore order in cases like 'BRAC1;BRAC2'
     tf_val_symbol_set = merged_df['TF Symbol_validated'].fillna('').str.upper().str.split(";").apply(lambda x: set(x))
     tf_pre_symbol_set = merged_df['TF Symbol_prerenorm'].fillna('').str.upper().str.split(";").apply(lambda x: set(x))
     m_mismatch = tf_val_symbol_set != tf_pre_symbol_set
 
     # Assert that all cases are due to NFKB / AP1 renormalisations
-    assert all(merged_df[m_mismatch]['TF Symbol_prerenorm'].str.upper().isin(('NFKB', 'AP1')))
+    assert all(merged_df[m_mismatch]['TF Symbol_prerenorm'].str.upper().isin(('NFKB', 'AP1'))), f"TF symbol mismatch not due to NFKB/AP1 renormalisation: {merged_df[m_mismatch]['TF Symbol_prerenorm'].str.upper().unique()}"
     
     # For those cases, remove 'renormalisation' error
     merged_df.loc[m_mismatch, 'TF_is_incorrect']    = np.nan

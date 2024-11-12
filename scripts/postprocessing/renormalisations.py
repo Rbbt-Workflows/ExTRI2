@@ -193,7 +193,7 @@ def add_renormalisation_tag(ExTRI2_df, m, tag):
     ExTRI2_df.loc[m, 'renormalisation'] + f';{tag}')
     return 
 
-def renormalize(ExTRI2_df: pd.DataFrame) -> None:
+def renormalize(ExTRI2_df: pd.DataFrame, renormalized_sents_path: str) -> None:
     '''
     Renormalize common errors (excluding NFKB & AP1).
     Save all renormalized sentences in a table
@@ -247,6 +247,10 @@ def renormalize(ExTRI2_df: pd.DataFrame) -> None:
     p21_to_CDKN1A(ExTRI2_df)
     p53ps_to_TP53(ExTRI2_df)
     print()
+
+    # Join & save discarded sentences
+    if renormalized_sents_path is not None:
+        ExTRI2_df[ExTRI2_df['renormalisation'] != ''].to_csv(renormalized_sents_path, sep='\t')
 
     return
 

@@ -1,9 +1,16 @@
 #!/bin/bash
-# Convert BioC to Pubtator, only keeping title and abstract from those PMIDs with Gene mentions
+# 
+# It converts a folder of BioCXML files into a folder of PubTator files, only keeping 
+# title and abstract from those articles with Gene mentions. 
 # If abstract has more than 1 section (e.g. abstract_title1, abstract, etc.), separate by |
-# If PMID cannot be processed, obtain from PubTator through POST
+# 
+# Steps:
+# - Truncates the file to contain only the title and abstract, and only those PMIDs with gene mentions.
+# - Uses `bioc_to_pubtator.py` to convert the truncated BioC into PubTator format. Saves those PMIDs that raise an AssertionError.
+# - Uses `get_pmid_list.sh` to obtain the problematic PMIDs directly from PubTator3 through GET.
 #
-# Usage: bioc_to_pubtator.sh <input_dir> <output_dir>
+# Usage: 
+#   bioc_to_pubtator.sh <BioCXML_input_dir> <pubtator_output_dir>
 
 # Define truncate function
 truncate_bioc() {

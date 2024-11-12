@@ -1,3 +1,5 @@
+'''Run from postprocessing_checkings.ipynb'''
+
 import pandas as pd
 import numpy as np
 import os
@@ -48,6 +50,8 @@ def load_config() -> dict:
     POSTPROCESS_TABLES_P = DATA_P + 'postprocessing/tables/'
     config['postprocess_tables_folder']  = POSTPROCESS_TABLES_P
     config['discarded_sents_p']          = POSTPROCESS_TABLES_P + 'discarded_sents.tsv'
+    config['renormalized_sents_p']       = POSTPROCESS_TABLES_P + 'renormalized_sents.tsv'
+    
     config['NFKB_AP1_discarded_sents_p'] = POSTPROCESS_TABLES_P + 'NFKB_AP1_discarded_sents.tsv'
     config['AP1_NFKB_breakdown_p']       = POSTPROCESS_TABLES_P + 'AP1_NFKB_breakdown.tsv'
     config['AP1_NFKB_breakdown_cols']    = ['entity', 'dimer', 'symbol', '% unmodified', '% modified', 'regex unmodified', 'regex modified']
@@ -389,10 +393,10 @@ def postprocess(ExTRI2_df: pd.DataFrame, valid_sents: bool, config: dict) -> pd.
         save_df(ExTRI2_df, config['valid_pre_renorm_p'])
 
         # Renormalise & discard
-        renormalize(ExTRI2_df)
+        renormalize(ExTRI2_df, renormalized_sents_path=config['renormalized_sents_p'])
         ExTRI2_df = discard(ExTRI2_df, discarded_sents_path=config['discarded_sents_p'])
     else:
-        renormalize(ExTRI2_df)
+        renormalize(ExTRI2_df, renormalized_sents_path = None)
         ExTRI2_df = discard(ExTRI2_df, discarded_sents_path=None)
 
     # Add HGNC symbols
