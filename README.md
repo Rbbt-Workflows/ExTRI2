@@ -63,7 +63,7 @@ rbbt workflow.rb
 Check `scripts/postprocessing/prepare_ExTRI2_resource.ipynb` for an explanation on how was the final ExTRI2 resource created.
 
 ## Analysis
-`analysis/ExTRI2_results_analysis.ipynb` contains all analysis and figures created for the paper.
+`analysis/analysis.ipynb` contains all analysis and figures created for the paper.
 
 
 # Environments

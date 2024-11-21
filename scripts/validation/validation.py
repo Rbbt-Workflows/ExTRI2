@@ -29,11 +29,11 @@ def load_config() -> dict:
     config['raw_ExTRI2_p']          = RESULTS_P + 'ExTRI2.tsv'
     config['final_ExTRI2_p']        = RESULTS_P + 'ExTRI2_final_resource.tsv'
     config['final_validated_p']     = RESULTS_P + 'validated_sentences.tsv'
+    config['prerenorm_validated_p'] = RESULTS_P + 'prerenorm_validated.tsv'
 
     # Temporary files
     config['nonvalid_sample_p']     = TEMP_P + 'ExTRI2_nonvalid_subset.tsv'
     config['valid_pre_renorm_p']    = TEMP_P + 'ExTRI2_valid_prenorm.tsv'         # Used for validation purposes
-
 
     config['tf_ids_p']              = DATA_P + 'tf_entrez_code.list'
     config['training_data_p']       = CLASSIFIERS_P + 'TRI_data.tsv'
@@ -49,7 +49,6 @@ def load_config() -> dict:
     config['stage6_ll_coTF_validated_p']     = VALIDATED_P + '28_08_unlikely_coTF_to_validate_AL.txt'
     config['stage7_validated_p']             = VALIDATED_P + 'stage7_to_validate_AL.txt'
     
-
     # To validate
     # TODO - Add how were those first 3 created.
     config['stage1_dbTF_to_validate_p']          = TO_VALIDATE_P + '04_28_sentences_to_validate.tsv'
@@ -157,6 +156,12 @@ def join_all_validated_dfs(config) -> pd.DataFrame:
     validated_df.loc[m_v, '#SentenceID'] = validated_df[m_v]['#SentenceID'].apply(lambda row: ":".join(row.split(':')[i] for i in [1,4,5,6]))
     validated_df['PMID'] = validated_df['#SentenceID'].apply(lambda row: row.split(':')[0])
 
+    # Drop duplicated sentences
+    # TODO - improve this
+    m = validated_df.duplicated(subset=['#SentenceID'], keep=False)
+    validated_df = validated_df[~m]
+    print(f"{m.sum()} duplicated sentences have been dropped.")
+
     # Rename MoR & Label
     validated_df['MoR'] = validated_df['MoR'].replace('REPRESION', 'REPRESSION')
     validated_df['true_MoR'] = validated_df['true_MoR'].replace({'repRESSION': 'REPRESSION', 'repression': 'REPRESSION'})
@@ -166,21 +171,24 @@ def join_all_validated_dfs(config) -> pd.DataFrame:
     validated_df['Other issues'] = validated_df[['Other issues'] + cols_to_join].apply(lambda x: ';'.join(sorted(x.dropna())), axis=1)
     validated_df.drop(columns=cols_to_join, inplace=True)
 
+    # Remove sentences that have been validated in more than one stage
+    validated_df = validated_df.sort_values(by='stage').drop_duplicates(subset=['#SentenceID', 'TF_type'], keep='first')
+
     # Assertions
     assert validated_df['method'].isna().sum() == 0, 'Method is not defined in some stages'
     assert (~validated_df['TF_type'].isin(['dbTF', 'GTF', 'coTF', 'll_coTF'])).sum() == 0, 'TF type category error. It should be dbTF, coTF, or ll_coTF.'
 
     return validated_df
 
-def join_validated_df_with_valid_df(validated_df, valid_df, state='prerenorm'):
+def join_validated_df_with_TRI_df(validated_df, TRI_df, state='prerenorm'):
     '''
-    Merge the validated_df with the valid_df. Used both for
+    Merge the validated_df with the TRI_df. Used both for
     Return the merged and not merged sentences
     '''
 
-    # Do some changes on valid_df so it has the same format as validated_df
-    valid_df = valid_df.rename(columns={'Valid': 'Label'})
-    valid_df['Label'] = valid_df['Label'].replace({'Valid': 'TRUE', 'Non valid': 'FALSE'})
+    # Do some changes on TRI_df so it has the same format as validated_df
+    TRI_df = TRI_df.rename(columns={'Valid': 'Label'})
+    TRI_df['Label'] = TRI_df['Label'].replace({'Valid': 'TRUE', 'Non valid': 'FALSE'})
 
     # Only keep the relevant columns from validated_df
     validated_df_relevant_cols = ['#SentenceID', 'Sentence', 'TF_type',
@@ -192,9 +200,9 @@ def join_validated_df_with_valid_df(validated_df, valid_df, state='prerenorm'):
 
     validated_df = validated_df[validated_df_relevant_cols].copy()
     
-    # Merge the validated_df with the valid_df_{state} df
-    merged_df = pd.merge(validated_df, valid_df, on=['#SentenceID', 'Sentence'], how='inner', suffixes=('_validated', f'_{state}'))
-    print(f"{len(merged_df)}/{len(validated_df)} rows are merged.")
+    # Merge the validated_df with the TRI_df_{state} df
+    merged_df = pd.merge(validated_df, TRI_df, on=['#SentenceID', 'Sentence'], how='inner', suffixes=('_validated', f'_{state}'))
+    print(f"{len(merged_df)}/{len(validated_df)} rows are merged.\n")
 
     # Get non_merged columns
     non_merged_df = validated_df[~validated_df['#SentenceID'].isin(merged_df['#SentenceID'])]
@@ -202,7 +210,7 @@ def join_validated_df_with_valid_df(validated_df, valid_df, state='prerenorm'):
     return merged_df, non_merged_df
 
 def find_remaining_validated_in_candidate_sents(non_merged_df, config, chunk_size=1_000_000):
-    '''Merge the sentences not found in valid_df with ExTRI2_df more efficiently'''
+    '''Merge the sentences not found in TRI_df with ExTRI2_df more efficiently'''
 
     candidate_sents = pd.read_csv(config['raw_ExTRI2_p'], sep='\t', header=1, chunksize=chunk_size, keep_default_na=False)
     
@@ -252,33 +260,40 @@ def fix_label_MoR(df) :
     '''
     Fix mismatch between Label and MoR in the two datasets.
     
-    Diagram of all possibilities (with val=validated, pre=prerenorm):
+    Diagram of all possible mismatches (with val=validated, pre=prerenorm, LM=Label|MoR):
 
     val_LM	pre_LM	val_V?	val_T_LM ->	V?	    T_LM
-    T|A		F		T		.			F		T|A
+    T|A		F		T		T			F		T|A
                     F		F			T		.
                     F		T|R			F		T|R
-            T|R		T		.			F		T|A
+            T|R		T		T			F		T|A
                     F		F			F		F
                             T|R			T		.
                     F		T|U			F		T|U
-    F		T|A		T		.			F		F
+    F		T|A		T		T			F		F
                     F		T|A			T		.
                             T|R			F		T|R
 
     Summary:
-        V? =  "T" if pre_LM == val_T_LM else "F"
-        TM =  nan if pre_V? == "T" else (val_LM if val_T_LM is nan else val_T_LM)
+        V?   =  "T" if pre_LM == val_T_LM else "F"
+        T_LM =  nan if pre_V? == "T" else val_V?
     '''
+
+    # Ensure MoR is '' when Label is FALSE
+    df.loc[df['Label_validated'] == 'FALSE', 'MoR_validated'] = ''
+    df.loc[df['Label_prerenorm'] == 'FALSE', 'MoR_prerenorm'] = ''
+
+    # Ensure none of the columns have NaN values (rules fail if there's some present)
+    for column in ['Label_prerenorm', 'Label_validated', 'MoR_prerenorm', 'MoR_validated', 'Valid?']:
+        assert df[column].isna().sum() == 0    
 
     # Identify mismatches
     m_mismatch = (df['Label_prerenorm'] != df['Label_validated']) | (df['MoR_prerenorm'] != df['MoR_validated'])
 
     # Create combined columns for easy comparison
-    df['val_LM']   = df['Label_validated'] + '|' + df['MoR_validated'].fillna('')
-    df['pre_LM']   = df['Label_prerenorm'] + '|' + df['MoR_prerenorm'].fillna('')
-    df['val_T_LM'] = df['true_label'].fillna('') + '|' + df['true_MoR'].fillna('')
-
+    df['val_LM']   = df['Label_validated'] + '|' + df['MoR_validated']
+    df['pre_LM']   = df['Label_prerenorm'] + '|' + df['MoR_prerenorm']
+    df['val_T_LM'] = df['true_label'].fillna(df['Label_validated']) + '|' + df['true_MoR'].fillna(df['MoR_validated'])
 
     # Update 'Valid?' column based on mismatch condition
     df.loc[m_mismatch, 'Valid?'] = np.where(df[m_mismatch]['pre_LM'] == df[m_mismatch]['val_T_LM'], 'T', 'F')
@@ -287,15 +302,12 @@ def fix_label_MoR(df) :
     df.loc[m_mismatch, 'T_LM'] = np.where(
         df.loc[m_mismatch, 'Valid?'] == 'T',  # If Valid? is 'T'
         '|',                                  # Set 'T_LM' to '|'
-        np.where(                             # Otherwise 
-            df.loc[m_mismatch, 'val_T_LM'] == '|',  # If 'val_T_LM' is '|'
-            df.loc[m_mismatch, 'val_LM'],           # Set 'T_LM' to 'val_LM'
-            df.loc[m_mismatch, 'val_T_LM']          # Otherwise, set to 'val_T_LM'
-        )
+        df.loc[m_mismatch, 'val_T_LM']        # Otherwise, set to 'val_T_LM'
     )
 
     # Split 'T_LM' into 'true_label' and 'true_MoR'
-    df.loc[m_mismatch, ['true_label', 'true_MoR']] = df.loc[m_mismatch, 'T_LM'].str.split('|', expand=True)
+    df.loc[m_mismatch, 'true_label'] = df.loc[m_mismatch, 'T_LM'].str.split('|', expand=True)[0]
+    df.loc[m_mismatch, 'true_MoR'] = df.loc[m_mismatch, 'T_LM'].str.split('|', expand=True)[1]
 
     # Drop extra columns
     df.drop(columns=['Label_validated', 'MoR_validated', 'val_LM', 'pre_LM', 'val_T_LM', 'T_LM'], inplace=True)
@@ -309,14 +321,15 @@ def fix_NFKB_AP1_mismatches(merged_df: pd.DataFrame) -> None:
     If so, remove the 'renormalisation' error (validations were done before the NFKB/AP1 fixing)
     '''
 
-    # Get sentences validated and prerenorm sentences thatdon't match. Use a set to ignore order in cases like 'BRAC1;BRAC2'
+    # Get sentences validated and prerenorm sentences that don't match. Use a set to ignore order in cases like 'BRAC1;BRAC2'
     tf_val_symbol_set = merged_df['TF Symbol_validated'].fillna('').str.upper().str.split(";").apply(lambda x: set(x))
     tf_pre_symbol_set = merged_df['TF Symbol_prerenorm'].fillna('').str.upper().str.split(";").apply(lambda x: set(x))
     m_mismatch = tf_val_symbol_set != tf_pre_symbol_set
 
     # Assert that all cases are due to NFKB / AP1 renormalisations
     assert all(merged_df[m_mismatch]['TF Symbol_prerenorm'].str.upper().isin(('NFKB', 'AP1'))), f"TF symbol mismatch not due to NFKB/AP1 renormalisation: {merged_df[m_mismatch]['TF Symbol_prerenorm'].str.upper().unique()}"
-    
+    print(merged_df[m_mismatch][['TF Id_prerenorm', 'TF Id_validated', 'TF Symbol_prerenorm', 'TF Symbol_validated']].value_counts())
+
     # For those cases, remove 'renormalisation' error
     merged_df.loc[m_mismatch, 'TF_is_incorrect']    = np.nan
     merged_df.loc[m_mismatch, 'TF_correct_mention'] = np.nan
@@ -327,7 +340,7 @@ def fix_NFKB_AP1_mismatches(merged_df: pd.DataFrame) -> None:
 
     return 
 
-def fix_TG_Symbol_ID_mismatches(merged_df, state='prerenorm'):
+def fix_TG_Symbol_ID_mismatches(merged_df, state='prerenorm') -> None:
     '''
     Ensure TG Id/Symbol mismatches are expected
     Fix corrected normalisations
@@ -372,7 +385,42 @@ def fix_TG_Symbol_ID_mismatches(merged_df, state='prerenorm'):
     
     return
 
-def get_postrenorm_prerenorm_df(merged_df_valid, merged_df_false, valid_df):
+def fix_TF_type_mismatches(merged_df, verbose=False) -> pd.DataFrame:
+    '''Fix TF type mismatches between the validated and final ExTRI2 resources'''
+
+    # Simplify the TF_type column: "coTF;dbTF;coTF;-" -> "coTF;dbTF"
+    merged_df['TF_types_simplified'] = merged_df['TF_type_prerenorm'].apply(
+        lambda x: ';'.join(sorted(set(filter(lambda item: item != '-', x.split(';')))))
+    )
+
+    # Get mismatching columns
+    m = merged_df['TF_types_simplified'] !=  merged_df['TF_type_validated']
+
+    # Create masks for different cases to fix
+    m_ll_coTF_coTF = m & (merged_df['TF_types_simplified'] == 'll_coTF') & (merged_df['TF_type_validated'] == 'coTF')
+    m_coTF_dbTF = m & (merged_df['TF_types_simplified'] == 'coTF') & (merged_df['TF_type_validated'] == 'dbTF')
+    m_dbTF = m & (merged_df['TF_types_simplified'].str.contains('dbTF'))
+
+    # Fix each case
+    merged_df.loc[m_ll_coTF_coTF, 'TF_type_validated'] = 'll_coTF'
+    merged_df.loc[m_coTF_dbTF, 'TF_type_validated'] = 'coTF'
+    merged_df.loc[m_dbTF, 'TF_type_validated'] = 'dbTF'
+
+    # Remove helper columns
+    merged_df = merged_df.drop(columns=['TF_types_simplified'])
+
+    if verbose:
+        print("Mismatches that are left:")
+        # Get mismatches again
+        m = merged_df['TF_types_simplified'] !=  merged_df['TF_type_validated']
+
+        # Count unique pairs of 'TF_types_simplified' and 'TF_type_validated'
+        counts = merged_df[m][['TF_types_simplified', 'TF_type_validated']].value_counts().reset_index(name='count')
+        print(counts)
+
+    return merged_df
+
+def get_postrenorm_prerenorm_df(merged_df_valid, merged_df_false, TRI_df):
 
     # For valid ones, we will correct the NFKB/AP1 normalisations
     fix_NFKB_AP1_mismatches(merged_df_valid)
@@ -380,6 +428,9 @@ def get_postrenorm_prerenorm_df(merged_df_valid, merged_df_false, valid_df):
     # Correct Label & MoR for both
     fix_label_MoR(merged_df_valid)
     fix_label_MoR(merged_df_false)
+    
+    # Fix TF type mismatches
+    merged_df_valid = fix_TF_type_mismatches(merged_df_valid)
 
     # Check Ids are the same in both cases, and if so, join columns into one
     for T in ('TF', 'TG'):
@@ -394,14 +445,14 @@ def get_postrenorm_prerenorm_df(merged_df_valid, merged_df_false, valid_df):
     fix_TG_Symbol_ID_mismatches(merged_prerenorm, state='prerenorm')
 
     # Get postrenorm sentences & fix the TG Symbol/ID mismatches
-    merged_postrenorm, _ = join_validated_df_with_valid_df(merged_df_valid.rename(columns={f'{col}_validated': col for col in ['TF_type', 'TG Id', 'TG Symbol']}), valid_df, 'postrenorm')
+    merged_postrenorm, _ = join_validated_df_with_TRI_df(merged_df_valid.rename(columns={f'{col}_validated': col for col in ['TF_type', 'TG Id', 'TG Symbol']}), TRI_df, 'postrenorm')
     fix_TG_Symbol_ID_mismatches(merged_postrenorm, state='postrenorm')
-    
+
     # Check & drop columns
     cols = ['Label', 'MoR', 'TF Id', 'TF Symbol']
     assert all([merged_postrenorm[f'{col}_validated'].equals(merged_postrenorm[f'{col}_postrenorm']) for col in cols]), f"Some columns have mismatches"
     merged_postrenorm = merged_postrenorm.drop(columns=[f'{col}_validated' for col in cols])
-    merged_postrenorm = merged_postrenorm.rename(columns={f'{col}_postrenorm': col for col in cols+['TF_type']})
+    merged_postrenorm = merged_postrenorm.rename(columns={f'{col}_postrenorm': col for col in cols+['TF_type']})    
 
     return merged_prerenorm, merged_postrenorm, merged_df_false
 
@@ -528,22 +579,22 @@ def get_PMIDs_used_in_training(training_path: str) -> set:
     print(f"Training PMIDs:\t We used {len(training_PMIDs)} PMIDs in the training set, that we will filter out for validation.")
     return training_PMIDs
 
-def load_valid_nonvalid_df(valid_path: str, nonvalid_path: str, training_path: str) -> tuple:
-    '''Return valid and nonvalid(subset) dfs, with the PMIDs used in training filtered out'''
+def load_TRI_nonTRI_df(TRI_path: str, nonTRI_path: str, training_path: str) -> tuple:
+    '''Return dfs with TRI interactions and non-TRI interactions(subset), with the PMIDs used in training filtered out'''
     # Load and concatenate
-    valid_df    = pd.read_csv(valid_path, sep='\t', header=0, dtype=str)
-    nonvalid_df = pd.read_csv(nonvalid_path, sep='\t', header=0, dtype=str)
+    TRI_df    = pd.read_csv(TRI_path, sep='\t', header=0, dtype=str)
+    nonTRI_df = pd.read_csv(nonTRI_path, sep='\t', header=0, dtype=str)
 
     # Filter PMIDs used in training
     training_PMIDs = get_PMIDs_used_in_training(training_path)
-    valid_df    = valid_df[~valid_df['PMID'].isin(training_PMIDs)]
-    nonvalid_df = nonvalid_df[~nonvalid_df['PMID'].isin(training_PMIDs)]
+    TRI_df    = TRI_df[~TRI_df['PMID'].isin(training_PMIDs)]
+    nonTRI_df = nonTRI_df[~nonTRI_df['PMID'].isin(training_PMIDs)]
 
     # Remove hash from #SentenceID
-    valid_df['#SentenceID']     = valid_df['#SentenceID'].apply(lambda row: ":".join(row.split(':')[i] for i in [1,4,5,6]))
-    nonvalid_df['#SentenceID']  = nonvalid_df['#SentenceID'].apply(lambda row: ":".join(row.split(':')[i] for i in [1,4,5,6]))
+    TRI_df['#SentenceID']     = TRI_df['#SentenceID'].apply(lambda row: ":".join(row.split(':')[i] for i in [1,4,5,6]))
+    nonTRI_df['#SentenceID']  = nonTRI_df['#SentenceID'].apply(lambda row: ":".join(row.split(':')[i] for i in [1,4,5,6]))
 
-    return valid_df, nonvalid_df 
+    return TRI_df, nonTRI_df 
 
 def display_validated_per_stage(validated_df: pd.DataFrame) -> str: 
     '''Show in markdown format the number of validated sentences in each stage'''

@@ -184,10 +184,6 @@ def load_preprocess_df(df_path: str) -> pd.DataFrame:
     df = load_df(df_path)
 
     df['PMID']              = df['#SentenceID'].apply(lambda row: row.split(':')[1])
-    df['PMID+Sent']         = df['#SentenceID'].apply(lambda row: row.split(':')[1]+'|'+row.split(':')[4])
-    df['TRI Id']            = df['TF Id'] + '|' + df['TG Id']
-    df['PMID+Sent+TRI_Id']  = df['PMID+Sent'] + '|' + df['TRI Id']
-    df.drop(columns=['PMID+Sent', 'TRI Id'], inplace=True)
 
     # Set 'Mutated_TF'
     df['Mutated_TF'] = np.where(df['Mutated Genes'] != '',
@@ -211,8 +207,14 @@ def remove_duplicates(valid: pd.DataFrame) -> None:
     When there's more than 1 TF/TG ID combination, in a same sentence, that is considered valid, 
     the combination with the highest prediction from the model will be preserved, while the others will be dropped. 
     '''
-    # Only keep the valid sentence with the highest score:
 
+    # Ensure colums are updated
+    valid['PMID+Sent']         = valid['#SentenceID'].apply(lambda row: row.split(':')[1]+'|'+row.split(':')[4])
+    valid['TRI Id']            = valid['TF Id'] + '|' + valid['TG Id']
+    valid['PMID+Sent+TRI_Id']  = valid['PMID+Sent'] + '|' + valid['TRI Id']
+    valid.drop(columns=['PMID+Sent', 'TRI Id'], inplace=True)
+
+    # Only keep the valid sentence with the highest score:
     valid.sort_values(by=['Valid score'], ascending=False, inplace=True)
     valid.drop_duplicates(subset=['PMID+Sent+TRI_Id'], keep="first", inplace=True)
     return
@@ -398,6 +400,10 @@ def postprocess(ExTRI2_df: pd.DataFrame, valid_sents: bool, config: dict) -> pd.
     else:
         renormalize(ExTRI2_df, renormalized_sents_path = None)
         ExTRI2_df = discard(ExTRI2_df, discarded_sents_path=None)
+
+    # Remove duplicates (if formed after renormalization)
+    if valid_sents:
+        remove_duplicates(ExTRI2_df)
 
     # Add HGNC symbols
     ExTRI2_df = add_HGNC_symbols(ExTRI2_df, config['orthologs_p'], TaxID)

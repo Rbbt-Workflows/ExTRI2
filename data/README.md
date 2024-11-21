@@ -27,8 +27,8 @@ hgnc_human was downloaded from https://www.genenames.org/download/custom/ (25/08
 - [ ] Explain how I obtained the QuickGO & TFCheckpoint annotations
 
 ### tsv files
-`original_tri_sentences.tsv` is the original tsv file that was used for training the classifiers (see `classifiers_training/`)
-
-`NTNU_extended.tsv` is where `original_tri_sentences.tsv` comes from, after applying a group of filters
+* `original_tri_sentences.tsv` is the original tsv file that was used for training the classifiers (see `classifiers_training/`)
+* `NTNU_extended.tsv` is where `original_tri_sentences.tsv` comes from, after applying a group of filters
+* `all_human_TGs.tsv` contains all human genes, including protein-coding, small RNAs, pseudogenes & non-coding. Used for analysis. Downloaded from https://www.ncbi.nlm.nih.gov/datasets/gene/taxon/9606/ on 15/11/2024 
 
 - [ ] Should we explain the filters used to obtain the original_train_sentences? We didn't use them all and should explain why right?
