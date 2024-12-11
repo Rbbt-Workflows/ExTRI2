@@ -2,8 +2,8 @@ require 'rbbt-util'
 require 'rbbt/workflow'
 require 'rbbt/document'
 require 'rbbt/document/corpus'
-require 'rbbt/util/python'
-require 'rbbt/vector/model/huggingface'
+#require 'rbbt/util/python'
+#require 'rbbt/vector/model/huggingface'
 
 
 Misc.add_libdir if __FILE__ == $0
@@ -105,15 +105,6 @@ module ExTRI2
     end
   end
 
-  dep :tri_candidates, pubtator_file: :placeholder, compute: :produce  do |jobname,options|
-    Rbbt.data.pubtator.glob("*.pubtator").collect do |file|
-      {task: :tri_candidates, inputs: options.merge(:pubtator_file => file)}
-    end
-  end
-  task :all_candidates => :tsv do
-    TSV.concat_streams(dependencies)
-  end
-
   dep :tri_candidates
   input :tri_model, :string, "TRI model to load", "TRI_model"
   task :tri_sentences => :tsv do |tri_model|
@@ -192,13 +183,13 @@ module ExTRI2
     tsv
   end
 
-  dep :tri_MoR, pubtator_file: :placeholder, compute: :produce  do |jobname,options|
+  dep :tri_MoR, pubtator_file: :placeholder, compute: :produce, canfail: true  do |jobname,options|
     Rbbt.data.pubtator.glob("*.pubtator").collect do |file|
       {task: :tri_MoR, inputs: options.merge(:pubtator_file => file)}
     end
   end
   task :ExTRI2 => :tsv do
-    TSV.concat_streams(dependencies)
+    TSV.concat_streams(dependencies.select{|dep| dep.done? })
   end
 
 end
@@ -206,7 +197,9 @@ require 'ExTRI2/entities'
 
 
 require 'ExTRI2/tasks/human.rb'
+require 'ExTRI2/tasks/knocktf.rb'
 
 #require 'rbbt/knowledge_base/ExTRI2'
 #require 'rbbt/entity/ExTRI2'
 
+Workflow.main = ExTRI2
