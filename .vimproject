@@ -1013,4 +1013,16 @@ ExTRI2=/$PWD filter="*.rb *.rake Rakefile *.rdoc *.R *.sh *.js *.haml *.sass *.t
   spacy_sentences_multidoc.py
   spacy_splitter.py
  }
+ classifiers_training=classifiers_training {
+  MoR_train.py
+  TRI_train.py
+  src=src {
+   __init__.py
+   config.py
+   dataset.py
+   model.py
+   predict.py
+   train.py
+  }
+ }
 }
