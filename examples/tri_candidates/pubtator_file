@@ -1,0 +1,24 @@
+23732640|t|Eccentric contractions increase the phosphorylation of tuberous sclerosis complex-2 (TSC2) and alter the targeting of TSC2 and the mechanistic target of rapamycin to the lysosome.
+23732640|a|  The goal of this study was to determine whether the mechanical activation of mechanistic target of rapamycin (mTOR) signalling is associated with changes in phosphorylation of tuberous sclerosis complex-2 (TSC2) and targeting of mTOR and TSC2 to the lysosome. As a source of mechanical stimulation, mouse skeletal muscles were subjected to eccentric contractions (ECs). The results demonstrated that ECs induced hyper-phosphorylation of TSC2 and at least part of this increase occurred on residue(s) that fall within RxRxxS/T consensus motif(s). Furthermore, in control muscles, we found that both mTOR and TSC2 are highly enriched at the lysosome. Intriguingly, ECs enhanced the lysosomal association of mTOR and almost completely abolished the lysosomal association of TSC2. Based on these results, we developed a new model that could potentially explain how mechanical stimuli activate mTOR signalling. Furthermore, this is the first study to reveal that the activation of mTOR is associated with the translocation of TSC2 away from the lysosome. Since a large number of signalling pathways rely on TSC2 to control mTOR signalling, our results have potentially revealed a fundamental mechanism via which not only mechanical, but also various other types of stimuli, control mTOR signalling.
+23732640	55	83	tuberous sclerosis complex-2	Gene	22084
+23732640	85	89	TSC2	Gene	22084
+23732640	118	122	TSC2	Gene	22084
+23732640	131	162	mechanistic target of rapamycin	Gene	56717
+23732640	259	290	mechanistic target of rapamycin	Gene	56717
+23732640	292	296	mTOR	Gene	56717
+23732640	358	386	tuberous sclerosis complex-2	Gene	22084
+23732640	388	392	TSC2	Gene	22084
+23732640	411	415	mTOR	Gene	56717
+23732640	420	424	TSC2	Gene	22084
+23732640	481	486	mouse	Species	10090
+23732640	619	623	TSC2	Gene	22084
+23732640	780	784	mTOR	Gene	56717
+23732640	789	793	TSC2	Gene	22084
+23732640	887	891	mTOR	Gene	56717
+23732640	953	957	TSC2	Gene	22084
+23732640	1071	1075	mTOR	Gene	56717
+23732640	1158	1162	mTOR	Gene	56717
+23732640	1203	1207	TSC2	Gene	22084
+23732640	1284	1288	TSC2	Gene	22084
+23732640	1300	1304	mTOR	Gene	56717
+23732640	1459	1463	mTOR	Gene	56717

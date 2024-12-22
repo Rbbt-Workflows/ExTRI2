@@ -5,12 +5,18 @@ ExTRI2=/$PWD filter="*.rb *.rake Rakefile *.rdoc *.R *.sh *.js *.haml *.sass *.t
  lib=lib {
   ExTRI2=ExTRI2{
    entities.rb
+   tasks=tasks{
+    human.rb
+    knocktf.rb
+   }
   }
  }
  test=test {
   test_helper.rb
  }
  data=data filter="*"{
+  README.md
+  authoritative_tfs.tsv
   tf_entrez_code.list
   pubtator=pubtator{
    0_0.pubtator
@@ -1006,5 +1012,17 @@ ExTRI2=/$PWD filter="*.rb *.rake Rakefile *.rdoc *.R *.sh *.js *.haml *.sass *.t
  python=python filter="*"{
   spacy_sentences_multidoc.py
   spacy_splitter.py
+ }
+ classifiers_training=classifiers_training {
+  MoR_train.py
+  TRI_train.py
+  src=src {
+   __init__.py
+   config.py
+   dataset.py
+   model.py
+   predict.py
+   train.py
+  }
  }
 }

@@ -2,7 +2,6 @@ require 'rbbt-util'
 require 'rbbt/document/annotation'
 require 'rbbt/ner/token_trieNER'
 require 'rbbt/ner/rnorm'
-require 'rbbt/util/python'
 
 module ExTRI2
   def self.is_tf?(gene)
@@ -33,9 +32,8 @@ Document.define :tfs => :single do |dir|
   genes(dir).select{|g| ExTRI2.is_tf?(g) }
 end
 
-RbbtPython.add_path Rbbt.python.find(:lib)
-
 Document.define_multiple :sentences do |list|
+  require 'rbbt/util/python'
   list = self if Array === self
   list_sentences = RbbtPython.run :spacy_splitter do
     spacy_splitter.split_texts(list)
