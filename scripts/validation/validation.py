@@ -29,7 +29,6 @@ def load_config() -> dict:
     config['raw_ExTRI2_p']          = RESULTS_P + 'ExTRI2.tsv'
     config['final_ExTRI2_p']        = RESULTS_P + 'ExTRI2_final_resource.tsv'
     config['final_validated_p']     = RESULTS_P + 'validated_sentences.tsv'
-    config['prerenorm_validated_p'] = RESULTS_P + 'prerenorm_validated.tsv'
 
     # Temporary files
     config['nonvalid_sample_p']     = TEMP_P + 'ExTRI2_nonvalid_subset.tsv'
@@ -156,20 +155,22 @@ def join_all_validated_dfs(config) -> pd.DataFrame:
     validated_df.loc[m_v, '#SentenceID'] = validated_df[m_v]['#SentenceID'].apply(lambda row: ":".join(row.split(':')[i] for i in [1,4,5,6]))
     validated_df['PMID'] = validated_df['#SentenceID'].apply(lambda row: row.split(':')[0])
 
-    # Drop duplicated sentences
-    # TODO - improve this
-    m = validated_df.duplicated(subset=['#SentenceID'], keep=False)
+    # Drop sentences validated twice, keeping 1st validation
+    m = validated_df.duplicated(subset=['#SentenceID'], keep='first')
     validated_df = validated_df[~m]
-    print(f"{m.sum()} duplicated sentences have been dropped.")
+    print(f"{m.sum()} duplicated sentences have been dropped as they were validated in more than one stage.")
 
     # Rename MoR & Label
     validated_df['MoR'] = validated_df['MoR'].replace('REPRESION', 'REPRESSION')
     validated_df['true_MoR'] = validated_df['true_MoR'].replace({'repRESSION': 'REPRESSION', 'repression': 'REPRESSION'})
 
     # Join other_issues column
-    cols_to_join = ['OI2', 'Unnamed: 17', 'Unnamed: 18', 'Unnamed: 21', 'Unnamed: 25']
+    cols_to_join = ['OI2', 'Unnamed: 17', 'Unnamed: 18', 'Unnamed: 21']
     validated_df['Other issues'] = validated_df[['Other issues'] + cols_to_join].apply(lambda x: ';'.join(sorted(x.dropna())), axis=1)
+
+    # Drop useless columns
     validated_df.drop(columns=cols_to_join, inplace=True)
+    validated_df.drop(columns=['Unnamed: 25'], inplace=True)
 
     # Remove sentences that have been validated in more than one stage
     validated_df = validated_df.sort_values(by='stage').drop_duplicates(subset=['#SentenceID', 'TF_type'], keep='first')
@@ -260,7 +261,7 @@ def fix_label_MoR(df) :
     '''
     Fix mismatch between Label and MoR in the two datasets.
     
-    Diagram of all possible mismatches (with val=validated, pre=prerenorm, LM=Label|MoR):
+    Diagram of all possible mismatches (with val=validated, pre=prerenorm, V?=Valid?, LM=Label|MoR):
 
     val_LM	pre_LM	val_V?	val_T_LM ->	V?	    T_LM
     T|A		F		T		T			F		T|A
@@ -282,6 +283,7 @@ def fix_label_MoR(df) :
     # Ensure MoR is '' when Label is FALSE
     df.loc[df['Label_validated'] == 'FALSE', 'MoR_validated'] = ''
     df.loc[df['Label_prerenorm'] == 'FALSE', 'MoR_prerenorm'] = ''
+    df.loc[df['true_label'] == 'FALSE', 'true_MoR'] = ''
 
     # Ensure none of the columns have NaN values (rules fail if there's some present)
     for column in ['Label_prerenorm', 'Label_validated', 'MoR_prerenorm', 'MoR_validated', 'Valid?']:
@@ -290,7 +292,7 @@ def fix_label_MoR(df) :
     # Identify mismatches
     m_mismatch = (df['Label_prerenorm'] != df['Label_validated']) | (df['MoR_prerenorm'] != df['MoR_validated'])
 
-    # Create combined columns for easy comparison
+    # Create combined Label-MoR columns for easy comparison
     df['val_LM']   = df['Label_validated'] + '|' + df['MoR_validated']
     df['pre_LM']   = df['Label_prerenorm'] + '|' + df['MoR_prerenorm']
     df['val_T_LM'] = df['true_label'].fillna(df['Label_validated']) + '|' + df['true_MoR'].fillna(df['MoR_validated'])
@@ -306,8 +308,9 @@ def fix_label_MoR(df) :
     )
 
     # Split 'T_LM' into 'true_label' and 'true_MoR'
-    df.loc[m_mismatch, 'true_label'] = df.loc[m_mismatch, 'T_LM'].str.split('|', expand=True)[0]
-    df.loc[m_mismatch, 'true_MoR'] = df.loc[m_mismatch, 'T_LM'].str.split('|', expand=True)[1]
+    if m_mismatch.sum() > 0:
+        df.loc[m_mismatch, 'true_label'] = df.loc[m_mismatch, 'T_LM'].str.split('|', expand=True)[0]
+        df.loc[m_mismatch, 'true_MoR']   = df.loc[m_mismatch, 'T_LM'].str.split('|', expand=True)[1]
 
     # Drop extra columns
     df.drop(columns=['Label_validated', 'MoR_validated', 'val_LM', 'pre_LM', 'val_T_LM', 'T_LM'], inplace=True)
@@ -420,15 +423,18 @@ def fix_TF_type_mismatches(merged_df, verbose=False) -> pd.DataFrame:
 
     return merged_df
 
-def get_postrenorm_prerenorm_df(merged_df_valid, merged_df_false, TRI_df):
+def get_final_validated_df(merged_df_valid, merged_df_false, TRI_df):
 
     # For valid ones, we will correct the NFKB/AP1 normalisations
     fix_NFKB_AP1_mismatches(merged_df_valid)
-    
+
+    # Ensure the FALSE df only contains FALSE validated sentences
+    merged_df_false = merged_df_false[merged_df_false['Label_validated'] == 'FALSE'].copy()
+
     # Correct Label & MoR for both
     fix_label_MoR(merged_df_valid)
     fix_label_MoR(merged_df_false)
-    
+
     # Fix TF type mismatches
     merged_df_valid = fix_TF_type_mismatches(merged_df_valid)
 
@@ -450,11 +456,35 @@ def get_postrenorm_prerenorm_df(merged_df_valid, merged_df_false, TRI_df):
 
     # Check & drop columns
     cols = ['Label', 'MoR', 'TF Id', 'TF Symbol']
+    # TODO - remove
+    for col in cols:
+        if not merged_postrenorm[f'{col}_validated'].equals(merged_postrenorm[f'{col}_postrenorm']):
+            print(f"Column {col} has mismatches")
+                                                    
     assert all([merged_postrenorm[f'{col}_validated'].equals(merged_postrenorm[f'{col}_postrenorm']) for col in cols]), f"Some columns have mismatches"
     merged_postrenorm = merged_postrenorm.drop(columns=[f'{col}_validated' for col in cols])
     merged_postrenorm = merged_postrenorm.rename(columns={f'{col}_postrenorm': col for col in cols+['TF_type']})    
 
-    return merged_prerenorm, merged_postrenorm, merged_df_false
+    # Specify the pre-post column
+    merged_postrenorm['pre-post'] = 'post'
+    merged_df_false['pre-post'] = 'post'
+    merged_prerenorm['pre-post'] = 'pre'
+
+    # Join in one only dataset
+    validated_df = pd.concat([merged_prerenorm, merged_postrenorm, merged_df_false], axis=0)
+
+    # CLEAN UP
+    # Fill up the NaNs in the true_label & true_MoR columns
+    validated_df['true_label'] = validated_df['true_label'].fillna(validated_df['Label'])
+    validated_df['true_MoR'] = validated_df['true_MoR'].fillna(validated_df['MoR'])
+
+    # Drop MoRs where true_label is False
+    validated_df['true_MoR'] = validated_df.apply(lambda x: x['true_MoR'] if x['true_label'] == 'TRUE' else np.nan, axis=1)
+    validated_df['MoR'] = validated_df.apply(lambda x: x['MoR'] if x['true_label'] == 'TRUE' else np.nan, axis=1)
+
+    validated_df.loc[validated_df['TF_type'].isna(), 'TF_type'] = validated_df[validated_df['TF_type'].isna()]['TF_type_validated']
+
+    return validated_df
 
 
 

@@ -19,7 +19,6 @@ def load_config() -> dict:
     config['raw_ExTRI2_p']          = RESULTS_P + 'ExTRI2.tsv'
     config['final_ExTRI2_p']        = RESULTS_P + 'ExTRI2_final_resource.tsv'
     config['final_validated_p']     = RESULTS_P + 'validated_sentences.tsv'
-    config['prerenorm_validated_p'] = RESULTS_P + 'prerenorm_validated.tsv'
 
     # TF lists
     config['dbTFs_p']       = DATA_P + 'postprocessing/dbTF_entrez_code.list'
