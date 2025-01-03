@@ -456,11 +456,7 @@ def get_final_validated_df(merged_df_valid, merged_df_false, TRI_df):
 
     # Check & drop columns
     cols = ['Label', 'MoR', 'TF Id', 'TF Symbol']
-    # TODO - remove
-    for col in cols:
-        if not merged_postrenorm[f'{col}_validated'].equals(merged_postrenorm[f'{col}_postrenorm']):
-            print(f"Column {col} has mismatches")
-                                                    
+
     assert all([merged_postrenorm[f'{col}_validated'].equals(merged_postrenorm[f'{col}_postrenorm']) for col in cols]), f"Some columns have mismatches"
     merged_postrenorm = merged_postrenorm.drop(columns=[f'{col}_validated' for col in cols])
     merged_postrenorm = merged_postrenorm.rename(columns={f'{col}_postrenorm': col for col in cols+['TF_type']})    
@@ -480,12 +476,16 @@ def get_final_validated_df(merged_df_valid, merged_df_false, TRI_df):
 
     # Drop MoRs where true_label is False
     validated_df['true_MoR'] = validated_df.apply(lambda x: x['true_MoR'] if x['true_label'] == 'TRUE' else np.nan, axis=1)
-    validated_df['MoR'] = validated_df.apply(lambda x: x['MoR'] if x['true_label'] == 'TRUE' else np.nan, axis=1)
+    validated_df['MoR'] = validated_df.apply(lambda x: x['MoR'] if x['Label'] == 'TRUE' else np.nan, axis=1)
 
     validated_df.loc[validated_df['TF_type'].isna(), 'TF_type'] = validated_df[validated_df['TF_type'].isna()]['TF_type_validated']
 
-    return validated_df
+    # Fill up NaNs in true_label, true_MoR columns
+    m = (validated_df['Label'] == 'TRUE') & (validated_df['Valid?'] == 'T')
+    validated_df.loc[m, 'true_label'] = 'TRUE'
+    validated_df.loc[m, 'true_MoR'] = validated_df[m]['MoR']
 
+    return validated_df
 
 
 # PREPARE DATASETS TO VALIDATE
