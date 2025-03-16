@@ -38,12 +38,12 @@ def load_config() -> dict:
 
     # Temporary
     TEMP_P = config['temp_p']
-    config['raw_valid_p']                   = TEMP_P + 'ExTRI2_valid_raw.tsv'
-    config['raw_nonvalid_sample_p']         = TEMP_P + 'ExTRI2_nonvalid_subset_raw.tsv'
-    config['valid_pre_renorm_p']            = TEMP_P + 'ExTRI2_valid_prenorm.tsv'         # Used for validation purposes
-    config['nonvalid_sample_p']             = TEMP_P + 'ExTRI2_nonvalid_subset.tsv'             # Used for validation purposes
-    config['EntrezID_to_Symbol_valid_p']    = TEMP_P + 'EntrezID_to_Symbol_TaxID.json'
-    config['EntrezID_to_Symbol_nonvalid_p'] = TEMP_P + 'EntrezID_to_Symbol_TaxID_nonvalid.json'
+    config['raw_TRI_p']                   = TEMP_P + 'ExTRI2_valid_raw.tsv'
+    config['raw_nonTRI_sample_p']         = TEMP_P + 'ExTRI2_nonvalid_subset_raw.tsv'
+    config['TRI_pre_renorm_p']            = TEMP_P + 'ExTRI2_valid_prenorm.tsv'               # Used for validation purposes
+    config['nonTRI_sample_p']             = TEMP_P + 'ExTRI2_nonvalid_subset.tsv'             # Used for validation purposes
+    config['EntrezID_to_Symbol_TRI_p']    = TEMP_P + 'EntrezID_to_Symbol_TaxID.json'
+    config['EntrezID_to_Symbol_nonTRI_p'] = TEMP_P + 'EntrezID_to_Symbol_TaxID_nonvalid.json'
 
 
     # Tables
@@ -92,7 +92,7 @@ def get_all_ids(df) -> set:
     IDs = (TF_IDs | TG_IDs)
     IDs -= {'', 'nan', 'None'}
     assert all(id.isdigit() for id in IDs), 'Some IDs are not digits'
-    print(f"We got {len(TF_IDs)} different TFs and {len(TG_IDs)} different TGs from our valid sentences")
+    print(f"We got {len(TF_IDs)} different TFs and {len(TG_IDs)} different TGs from sentences labelled as TRI")
 
     return IDs
 
@@ -145,45 +145,46 @@ def save_Symbol_TaxID_dict(df: pd.DataFrame, output_path: str) -> None:
 
     return 
 
-def get_valid_nonvalid_raw_dbs(ExTRI2_results_path: str, raw_valid_path: str, raw_nonvalid_sample_path: str, chunk_size = 1_200_000) -> None: 
+def get_TRI_nonTRI_raw_dbs(ExTRI2_results_path: str, raw_TRI_path: str, raw_nonTRI_sample_path: str, chunk_size = 1_200_000) -> None: 
     '''
     ExTRI2 contains millions of candidate sentences.
-    This function creates 2 more manageable datasets: one with all valid sentences, one with a sample of non-valid sentences
+    This function creates 2 more manageable datasets: one with all sentences labelled as TRI, one with a sample of non-TRI sentences
     '''
-    valid_list = []
-    nonvalid_sample_list = []
+    TRI_df_list = []
+    nonTRI_df_sample_list = []
 
     # Load the sentences in chunks of chunk_size
     candidate_sents = pd.read_csv(ExTRI2_results_path, sep='\t', header=1, chunksize=chunk_size, keep_default_na=False)
 
     for i, chunk in enumerate(candidate_sents):
 
-        valid = chunk[chunk['Valid'] == 'Valid']
-        nonvalid_sample = chunk[chunk['Valid'] == 'Non valid'].sample(n=5000)
+        # "TRI" is labelled as "Valid" in the raw ExTRI2 file
+        TRI_df = chunk[chunk['Valid'] == 'Valid']
+        nonTRI_df_sample = chunk[chunk['Valid'] == 'Non valid'].sample(n=5000)
 
-        valid = valid.rename(columns={'Text': 'Sentence', 'Gene': 'TG', 'IG Id': 'TG Id'})
-        nonvalid_sample = nonvalid_sample.rename(columns={'Text': 'Sentence', 'Gene': 'TG', 'IG Id': 'TG Id'})
+        TRI_df = TRI_df.rename(columns={'Text': 'Sentence', 'Gene': 'TG', 'IG Id': 'TG Id'})
+        nonTRI_df_sample = nonTRI_df_sample.rename(columns={'Text': 'Sentence', 'Gene': 'TG', 'IG Id': 'TG Id'})
 
-        valid_list.append(valid)
-        nonvalid_sample_list.append(nonvalid_sample)
+        TRI_df_list.append(TRI_df)
+        nonTRI_df_sample_list.append(nonTRI_df_sample)
 
         print(f'Processed {i+1} chunks of {chunk_size} rows from the candidate sentences', end='\r')
     print()
 
     # Concatenate
-    valid = pd.concat(valid_list, axis=0)
-    nonvalid_sample = pd.concat(nonvalid_sample_list, axis=0)
+    TRI_df = pd.concat(TRI_df_list, axis=0)
+    nonTRI_df_sample = pd.concat(nonTRI_df_sample_list, axis=0)
 
     # Save
-    valid.to_csv(raw_valid_path, index=False, sep='\t')
-    nonvalid_sample.to_csv(raw_nonvalid_sample_path, index=False, sep='\t')
+    TRI_df.to_csv(raw_TRI_path, index=False, sep='\t')
+    nonTRI_df_sample.to_csv(raw_nonTRI_sample_path, index=False, sep='\t')
 
     return
 
 def load_preprocess_df(df_path: str) -> pd.DataFrame:
     df = load_df(df_path)
 
-    df['PMID']              = df['#SentenceID'].apply(lambda row: row.split(':')[1])
+    df['PMID'] = df['#SentenceID'].apply(lambda row: row.split(':')[1])
 
     # Set 'Mutated_TF'
     df['Mutated_TF'] = np.where(df['Mutated Genes'] != '',
@@ -192,6 +193,9 @@ def load_preprocess_df(df_path: str) -> pd.DataFrame:
 
     # Change REPRESION to REPRESSION
     df['MoR'] = df['MoR'].replace('REPRESION', 'REPRESSION')
+
+    # Change Valid Score to TRI Score
+    df = df.rename(columns={'Valid score': 'TRI score'})
 
     # Assertions
     assert set(df['MoR'])  == {'ACTIVATION', 'REPRESSION', 'UNDEFINED'}, f'MoR column has unexpected values: {set(df["MoR"])}'
@@ -202,21 +206,21 @@ def load_preprocess_df(df_path: str) -> pd.DataFrame:
 
     return df
 
-def remove_duplicates(valid: pd.DataFrame) -> None:
+def remove_duplicates(TRI_df: pd.DataFrame) -> None:
     '''
-    When there's more than 1 TF/TG ID combination, in a same sentence, that is considered valid, 
+    When there's more than 1 TF/TG ID combination, in a same sentence, that is labelled as TRI, 
     the combination with the highest prediction from the model will be preserved, while the others will be dropped. 
     '''
 
     # Ensure colums are updated
-    valid['PMID+Sent']         = valid['#SentenceID'].apply(lambda row: row.split(':')[1]+'|'+row.split(':')[4])
-    valid['TRI Id']            = valid['TF Id'] + '|' + valid['TG Id']
-    valid['PMID+Sent+TRI_Id']  = valid['PMID+Sent'] + '|' + valid['TRI Id']
-    valid.drop(columns=['PMID+Sent', 'TRI Id'], inplace=True)
+    TRI_df['PMID+Sent']         = TRI_df['#SentenceID'].apply(lambda row: row.split(':')[1]+'|'+row.split(':')[4])
+    TRI_df['TRI Id']            = TRI_df['TF Id'] + '|' + TRI_df['TG Id']
+    TRI_df['PMID+Sent+TRI_Id']  = TRI_df['PMID+Sent'] + '|' + TRI_df['TRI Id']
+    TRI_df.drop(columns=['PMID+Sent', 'TRI Id'], inplace=True)
 
-    # Only keep the valid sentence with the highest score:
-    valid.sort_values(by=['Valid score'], ascending=False, inplace=True)
-    valid.drop_duplicates(subset=['PMID+Sent+TRI_Id'], keep="first", inplace=True)
+    # Only keep the TRI sentence labelled as TRI with the highest score:
+    TRI_df.sort_values(by=['TRI score'], ascending=False, inplace=True)
+    TRI_df.drop_duplicates(subset=['PMID+Sent+TRI_Id'], keep="first", inplace=True)
     return
 
 def add_symbols_TaxID(df: pd.DataFrame, EntrezIDtoSymbol_path: str) -> None:
@@ -369,17 +373,23 @@ def drop_GTFs(ExTRI2_df: pd.DataFrame) -> pd.DataFrame:
 def save_df(df, output_p):
     df.to_csv(output_p, index=False, sep='\t')
 
-def postprocess(ExTRI2_df: pd.DataFrame, valid_sents: bool, config: dict) -> pd.DataFrame:
-    '''Add metadata, filter out sentences and renormalize entities with common mistakes'''
+def postprocess(ExTRI2_df: pd.DataFrame, TRI_sents: bool, config: dict) -> pd.DataFrame:
+    '''
+    Add metadata, filter out sentences and renormalize entities with common mistakes
 
-    df_type = 'valid' if valid_sents else 'nonvalid'
+    Args:
+        TRI_sents: bool, indicates whether to consider sentences labelled as TRI or "not TRI"
+        config: dictionary with paths
+    '''
+
+    df_type = 'TRI' if TRI_sents else 'nonTRI'
     print(f'### POSTPROCESSING {df_type}_df')
 
     # Retrieve Symbol & TaxID from Entrez
     save_Symbol_TaxID_dict(ExTRI2_df, config[f'EntrezID_to_Symbol_{df_type}_p'])
 
     # Filter & add metadata
-    if valid_sents:
+    if TRI_sents:
         remove_duplicates(ExTRI2_df)
     ExTRI2_df = add_symbols_TaxID(ExTRI2_df, config[f'EntrezID_to_Symbol_{df_type}_p'])
     add_TF_type(ExTRI2_df, config)
@@ -390,9 +400,9 @@ def postprocess(ExTRI2_df: pd.DataFrame, valid_sents: bool, config: dict) -> pd.
     ExTRI2_df = fix_NFKB_AP1(ExTRI2_df, config)
 
     # Renormalize & discard sentences with common mistakes
-    if valid_sents:
+    if TRI_sents:
         # Save version before renormalisation
-        save_df(ExTRI2_df, config['valid_pre_renorm_p'])
+        save_df(ExTRI2_df, config['TRI_pre_renorm_p'])
 
         # Renormalise & discard
         renormalize(ExTRI2_df, renormalized_sents_path=config['renormalized_sents_p'])
@@ -402,7 +412,7 @@ def postprocess(ExTRI2_df: pd.DataFrame, valid_sents: bool, config: dict) -> pd.
         ExTRI2_df = discard(ExTRI2_df, discarded_sents_path=None)
 
     # Remove duplicates (if formed after renormalization)
-    if valid_sents:
+    if TRI_sents:
         remove_duplicates(ExTRI2_df)
 
     # Add HGNC symbols
@@ -416,21 +426,21 @@ def main():
     config = load_config()
 
     # Only run if not run already
-    if not os.path.isfile(config['raw_valid_p']):
+    if not os.path.isfile(config['raw_TRI_p']):
         # Get manageable datasets from the raw ExTRI file (which has millions of candidate sentences)
-        get_valid_nonvalid_raw_dbs(config['raw_results_p'], config['raw_valid_p'], config['raw_nonvalid_sample_p'], config['chunk_size'])
+        get_TRI_nonTRI_raw_dbs(config['raw_results_p'], config['raw_TRI_p'], config['raw_nonTRI_sample_p'], config['chunk_size'])
 
     # Load raw dataframes
-    valid_df           = load_preprocess_df(config['raw_valid_p'])
-    nonvalid_sample_df = load_preprocess_df(config['raw_nonvalid_sample_p'])
+    TRI_df            = load_preprocess_df(config['raw_TRI_p'])
+    not_TRI_sample_df = load_preprocess_df(config['raw_nonTRI_sample_p'])
 
     # Postprocess
-    valid_df           = postprocess(valid_df,           valid_sents=True,  config=config)
-    nonvalid_sample_df = postprocess(nonvalid_sample_df, valid_sents=False, config=config)
+    TRI_df            = postprocess(TRI_df,            TRI_sents=True,  config=config)
+    not_TRI_sample_df = postprocess(not_TRI_sample_df, TRI_sents=False, config=config)
 
     # Save
-    save_df(valid_df, config['final_ExTRI2_p'])
-    save_df(nonvalid_sample_df, config['nonvalid_sample_p'])
+    save_df(TRI_df, config['final_ExTRI2_p'])
+    save_df(not_TRI_sample_df, config['nonTRI_sample_p'])
 
 if __name__ == "__main__":
     main()

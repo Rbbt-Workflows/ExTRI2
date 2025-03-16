@@ -593,7 +593,7 @@ def reorder_df_for_Excel(to_validate: pd.DataFrame, TaxID_to_species: dict = Tax
         'TG Symbol', 'Incorrect? TG', 'Correct name TG', 
         'Label', 'MoR', 'Valid?', 'dir-*', 'true_label', 'true_MoR', 'Other issues', 'OI2', 'Explanation', 
         'TF Species', 'TG Species',
-        'Valid score', 'MoR scores']
+        'TRI score', 'MoR scores']
     remaining_cols = to_validate.columns.difference(ordered_main_cols)
     to_validate = to_validate[ordered_main_cols + list(remaining_cols)]
 
