@@ -15,6 +15,7 @@ def load_config() -> dict:
     CLASSIFIERS_P   = '../classifiers_training/data/'
     TEMP_P          = DATA_P + 'tmp/'
 
+
     # Results
     config['raw_ExTRI2_p']          = RESULTS_P + 'ExTRI2.tsv'
     config['final_ExTRI2_p']        = RESULTS_P + 'ExTRI2_final_resource.tsv'
@@ -26,6 +27,9 @@ def load_config() -> dict:
     config['ll_coTFs_p']    = DATA_P + 'postprocessing/ll_coTF_entrez_code.list'
     config['TFs_p']         = DATA_P + 'tf_entrez_code.list'
     config['all_human_TGs_p'] = DATA_P + 'external/all_human_genes.tsv'
+
+    # Classifiers
+    config['models_p'] = '../classifiers_training/saved_models/'
 
     return config
 
