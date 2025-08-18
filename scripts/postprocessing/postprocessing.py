@@ -186,16 +186,19 @@ def load_preprocess_df(df_path: str) -> pd.DataFrame:
 
     df['PMID'] = df['#SentenceID'].apply(lambda row: row.split(':')[1])
 
-    # Set 'Mutated_TF'
-    df['Mutated_TF'] = np.where(df['Mutated Genes'] != '',
-                                df.apply(lambda row: row['TF Id'] in row['Mutated Genes'].split(';'), axis=1),
-                                False)
 
     # Change REPRESION to REPRESSION
     df['MoR'] = df['MoR'].replace('REPRESION', 'REPRESSION')
 
     # Change Valid Score to TRI Score
     df = df.rename(columns={'Valid score': 'TRI score'})
+
+    # 'Mutated_TF' was abandoned as it was in a very small % of sentences and did not give any useful information.
+    # df['Mutated_TF'] = np.where(df['Mutated Genes'] != '',
+    #                             df.apply(lambda row: row['TF Id'] in row['Mutated Genes'].split(';'), axis=1),
+    #                             False)
+    # Remove mutated genes column from the df
+    df = df.drop(columns=['Mutated Genes', 'Mutation offsets'])
 
     # Assertions
     assert set(df['MoR'])  == {'ACTIVATION', 'REPRESSION', 'UNDEFINED'}, f'MoR column has unexpected values: {set(df["MoR"])}'

@@ -38,19 +38,6 @@ def load_TF_set(path: str) -> set:
         TF_set = {l.strip('\n') for l in f}
     return TF_set
 
-# TODO - Remove this if not needed
-# def add_extra_cols(ExTRI2_df, validated_df):
-#     '''Add extra columns for analysis purposes'''
-#     ExTRI2_df['PMID+Sent']          = ExTRI2_df['#SentenceID'].apply(lambda row: row.split(':')[1]+'|'+row.split(':')[4])
-#     ExTRI2_df['TRI Id']             = ExTRI2_df['TF Id'] + '|' + ExTRI2_df['TG Id']
-#     ExTRI2_df['PMID+Sent+TRI_Id']   = ExTRI2_df['PMID+Sent'] + '|' + ExTRI2_df['TRI Id']
-#     ExTRI2_df['PMID+Sent+TRI']      = ExTRI2_df['PMID+Sent'] + '|' + ExTRI2_df['TF'] + '|' + ExTRI2_df['TG']
-
-#     validated_df['PMID+Sent'] = validated_df['#SentenceID'].apply(lambda row: row.split(':')[0]+'|'+row.split(':')[1])
-#     validated_df['PMID+Sent+TRI_Id'] = validated_df['PMID+Sent'] + '|' + validated_df['TF Id'] + '|' + validated_df['TG Id']
-
-
-
 def retrieve_annotations_entrez(id_list):
     """Annotates Entrez Gene IDs using Bio.Entrez, in particular epost (to
     submit the data to NCBI) and esummary to retrieve the information.

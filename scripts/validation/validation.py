@@ -489,7 +489,7 @@ def get_final_validated_df(merged_df_valid, merged_df_false, TRI_df):
 
 
 # PREPARE DATASETS TO VALIDATE
-def select_rows_for_validation(df: pd.DataFrame, validated: pd.DataFrame = None, method: str = 'balanced', TRI_size = None, nonTRI_size = None, TFs_drawn_per_batch = 1) -> pd.DataFrame:
+def select_rows_for_validation(df: pd.DataFrame, validated: pd.DataFrame|None = None, method: str = 'balanced', TRI_size = None, nonTRI_size = None, TFs_drawn_per_batch = 1) -> pd.DataFrame:
     '''
     Get a sample of rows to validate.
 

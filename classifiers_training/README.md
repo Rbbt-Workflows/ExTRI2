@@ -9,7 +9,7 @@ Scripts:
 Datasets and models:
 * `data/` contains the datasets used to train the classifiers.
 * `pretrained_models/` contains the pretrained models downloaded from Huggingface (follow `pretrained_models/README.md` to download them)
-* `final_models/` contains the final TRI and MoR models used to create the ExTRI2 pipeline. # TODO Should they be here? They're used for training the whole model
+* `final_models/` contains the final TRI and MoR models used to create the ExTRI2 pipeline.
 * `saved_models/` contains a folder for each of the trained models. Inside each, `train_params.json` contains the parameters used & metrics obtained for training
   * The subfolders `before_3rd_iteration`, `before_2nd_iteration` and `before_1st_iteration` contain the models trained with previous versions of the dataset. See  [Dependencies with other folders](#dependencies-with-other-folders) section for more details.
 
