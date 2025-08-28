@@ -1,0 +1,257 @@
+﻿GENE PRODUCT DB	GENE PRODUCT ID	SYMBOL	QUALIFIER	GO TERM	GO NAME	ECO ID	GO EVIDENCE CODE	REFERENCE	WITH/FROM	TAXON ID	ASSIGNED BY	ANNOTATION EXTENSION	GO ASPECT
+UniProtKB	A0JPP1	Drap1	enables	GO:0001091	RNA polymerase II general transcription initiation factor binding	ECO:0000266	ISO	GO_REF:0000096	UniProtKB:Q14919	10116	RGD		F
+UniProtKB	A0JPP1	Drap1	enables	GO:0001091	RNA polymerase II general transcription initiation factor binding	ECO:0000265	IEA	GO_REF:0000107	UniProtKB:Q14919|ensembl:ENSP00000307850	10116	Ensembl		F
+UniProtKB	A2AQ19	Rtf1	enables	GO:1990269	RNA polymerase II C-terminal domain phosphoserine binding	ECO:0000318	IBA	GO_REF:0000033	PANTHER:PTN000319032|SGD:S000003213	10090	GO_Central		F
+UniProtKB	D3ZND0	Uvssa	enables	GO:0000993	RNA polymerase II complex binding	ECO:0000250	ISS	GO_REF:0000024	UniProtKB:Q2YD98	10116	UniProt		F
+UniProtKB	D3ZND0	Uvssa	enables	GO:0000993	RNA polymerase II complex binding	ECO:0000318	IBA	GO_REF:0000033	PANTHER:PTN002010268|UniProtKB:Q2YD98	10116	GO_Central		F
+UniProtKB	D3ZND0	Uvssa	enables	GO:0000993	RNA polymerase II complex binding	ECO:0000266	ISO	GO_REF:0000096	UniProtKB:Q2YD98	10116	RGD		F
+UniProtKB	D4ACP5	Recql5	enables	GO:0000993	RNA polymerase II complex binding	ECO:0000250	ISS	GO_REF:0000024	UniProtKB:O94762	10116	UniProt		F
+UniProtKB	D4ACP5	Recql5	enables	GO:0000993	RNA polymerase II complex binding	ECO:0000266	ISO	GO_REF:0000096	UniProtKB:O94762	10116	RGD		F
+UniProtKB	G3X9Z4	Pcf11	enables	GO:0000993	RNA polymerase II complex binding	ECO:0000256	IEA	GO_REF:0000002	InterPro:IPR045154	10090	InterPro		F
+UniProtKB	G3X9Z4	Pcf11	enables	GO:0000993	RNA polymerase II complex binding	ECO:0000250	ISS	GO_REF:0000024	UniProtKB:O94913	10090	UniProt		F
+UniProtKB	G3X9Z4	Pcf11	enables	GO:0000993	RNA polymerase II complex binding	ECO:0000318	IBA	GO_REF:0000033	PANTHER:PTN000408520|PomBase:SPAC4G9.04c|SGD:S000002636|UniProtKB:O94913|UniProtKB:Q9UPN6	10090	GO_Central		F
+UniProtKB	O08949	Gtf2a1	enables	GO:0001091	RNA polymerase II general transcription initiation factor binding	ECO:0000266	ISO	GO_REF:0000096	UniProtKB:P52655	10116	RGD		F
+UniProtKB	O08950	Gtf2a2	enables	GO:0001091	RNA polymerase II general transcription initiation factor binding	ECO:0000266	ISO	GO_REF:0000096	UniProtKB:P52657	10116	RGD		F
+UniProtKB	O09000	Ncoa3	enables	GO:0000993	RNA polymerase II complex binding	ECO:0000314	IDA	PMID:23019124		10090	UniProt		F
+UniProtKB	O54743	Foxf2	enables	GO:0001093	TFIIB-class transcription factor binding	ECO:0000265	IEA	GO_REF:0000107	UniProtKB:Q12947|ensembl:ENSP00000496415	10090	Ensembl		F
+UniProtKB	O60869	EDF1	enables	GO:0001094	TFIID-class transcription factor complex binding	ECO:0000314	IDA	PMID:12040021		9606	UniProt		F
+UniProtKB	O60885	BRD4	enables	GO:0099122	RNA polymerase II C-terminal domain binding	ECO:0000314	IDA	PMID:22509028		9606	MGI		F
+UniProtKB	O88291	Znf326	enables	GO:0000993	RNA polymerase II complex binding	ECO:0000250	ISS	GO_REF:0000024	UniProtKB:Q5BKZ1	10090	UniProt		F
+UniProtKB	O94762	RECQL5	enables	GO:0000993	RNA polymerase II complex binding	ECO:0000314	IDA	PMID:23748380		9606	UniProt		F
+UniProtKB	O94763	URI1	enables	GO:0000993	RNA polymerase II complex binding	ECO:0000314	IDA	PMID:9819440		9606	UniProt		F
+UniProtKB	O94913	PCF11	enables	GO:0000993	RNA polymerase II complex binding	ECO:0000256	IEA	GO_REF:0000002	InterPro:IPR045154	9606	InterPro		F
+UniProtKB	O94913	PCF11	enables	GO:0000993	RNA polymerase II complex binding	ECO:0000318	IBA	GO_REF:0000033	PANTHER:PTN000408520|PomBase:SPAC4G9.04c|SGD:S000002636|UniProtKB:O94913|UniProtKB:Q9UPN6	9606	GO_Central		F
+UniProtKB	O94913	PCF11	enables	GO:0000993	RNA polymerase II complex binding	ECO:0000314	IDA	PMID:29196535		9606	UniProt		F
+UniProtKB	O95104	SCAF4	enables	GO:1990269	RNA polymerase II C-terminal domain phosphoserine binding	ECO:0000318	IBA	GO_REF:0000033	PANTHER:PTN002751398|UniProtKB:O95104	9606	GO_Central		F
+UniProtKB	O95104	SCAF4	enables	GO:1990269	RNA polymerase II C-terminal domain phosphoserine binding	ECO:0000256	IEA	GO_REF:0000117	ARBA:ARBA00089787	9606	UniProt		F
+UniProtKB	O95104	SCAF4	enables	GO:1990269	RNA polymerase II C-terminal domain phosphoserine binding	ECO:0000314	IDA	PMID:31104839		9606	UniProt		F
+UniProtKB	O95718	ESRRB	enables	GO:0000993	RNA polymerase II complex binding	ECO:0000250	ISS	GO_REF:0000024	UniProtKB:Q61539	9606	UniProt		F
+UniProtKB	P02340	Tp53	enables	GO:0001094	TFIID-class transcription factor complex binding	ECO:0000265	IEA	GO_REF:0000107	UniProtKB:P04637|ensembl:ENSP00000269305	10090	Ensembl		F
+UniProtKB	P03372	ESR1	enables	GO:0001093	TFIIB-class transcription factor binding	ECO:0000353	IPI	PMID:9841876	UniProtKB:P03372	9606	CAFA		F
+UniProtKB	P04637	TP53	enables	GO:0001094	TFIID-class transcription factor complex binding	ECO:0000353	IPI	PMID:24289924	UniProtKB:P21675	9606	ParkinsonsUK-UCL		F
+UniProtKB	P06211	Esr1	enables	GO:0001093	TFIIB-class transcription factor binding	ECO:0000266	ISO	GO_REF:0000096	UniProtKB:P03372	10116	RGD		F
+UniProtKB	P07903	Ercc1	enables	GO:0001094	TFIID-class transcription factor complex binding	ECO:0000314	IDA	PMID:22323595		10090	MGI		F
+UniProtKB	P07992	ERCC1	enables	GO:0001094	TFIID-class transcription factor complex binding	ECO:0000265	IEA	GO_REF:0000107	UniProtKB:P07903|ensembl:ENSMUSP00000003645	9606	Ensembl		F
+UniProtKB	P0CAP2	POLR2M	enables	GO:0000993	RNA polymerase II complex binding	ECO:0000314	IDA	PMID:26789250		9606	UniProt		F
+UniProtKB	P10275	AR	enables	GO:0001091	RNA polymerase II general transcription initiation factor binding	ECO:0000353	IPI	PMID:20181722	UniProtKB:P21675	9606	ParkinsonsUK-UCL	part_of(GO:0071383)	F
+UniProtKB	P10361	Tp53	enables	GO:0001094	TFIID-class transcription factor complex binding	ECO:0000266	ISO	GO_REF:0000096	UniProtKB:P04637	10116	RGD		F
+UniProtKB	P11475	Esrrb	enables	GO:0000993	RNA polymerase II complex binding	ECO:0000250	ISS	GO_REF:0000024	UniProtKB:Q61539	10116	UniProt		F
+UniProtKB	P11475	Esrrb	enables	GO:0000993	RNA polymerase II complex binding	ECO:0000266	ISO	GO_REF:0000096	MGI:MGI:1346832	10116	RGD		F
+UniProtKB	P15207	Ar	enables	GO:0001091	RNA polymerase II general transcription initiation factor binding	ECO:0000266	ISO	GO_REF:0000096	UniProtKB:P10275	10116	RGD		F
+UniProtKB	P15884	TCF4	enables	GO:0001093	TFIIB-class transcription factor binding	ECO:0000250	ISS	PMID:8978694	UniProtKB:Q60722	9606	BHF-UCL		F
+UniProtKB	P19091	Ar	enables	GO:0001091	RNA polymerase II general transcription initiation factor binding	ECO:0000265	IEA	GO_REF:0000107	UniProtKB:P10275|ensembl:ENSP00000363822	10090	Ensembl		F
+UniProtKB	P19785	Esr1	enables	GO:0001093	TFIIB-class transcription factor binding	ECO:0000265	IEA	GO_REF:0000107	UniProtKB:P03372|ensembl:ENSP00000206249	10090	Ensembl		F
+UniProtKB	P20226	TBP	enables	GO:0001091	RNA polymerase II general transcription initiation factor binding	ECO:0000353	IPI	PMID:29111974	UniProtKB:P52655	9606	ARUK-UCL		F
+UniProtKB	P20226	TBP	enables	GO:0001091	RNA polymerase II general transcription initiation factor binding	ECO:0000353	IPI	PMID:29111974	UniProtKB:Q15543	9606	ARUK-UCL		F
+UniProtKB	P20226	TBP	enables	GO:0001091	RNA polymerase II general transcription initiation factor binding	ECO:0000353	IPI	PMID:29111974	UniProtKB:Q15544	9606	ARUK-UCL		F
+UniProtKB	P20226	TBP	enables	GO:0001091	RNA polymerase II general transcription initiation factor binding	ECO:0000353	IPI	PMID:7724559	UniProtKB:P52655	9606	BHF-UCL		F
+UniProtKB	P20226	TBP	enables	GO:0001091	RNA polymerase II general transcription initiation factor binding	ECO:0000353	IPI	PMID:7724559	UniProtKB:P52657	9606	BHF-UCL		F
+UniProtKB	P20226	TBP	enables	GO:0001091	RNA polymerase II general transcription initiation factor binding	ECO:0000353	IPI	PMID:8626665	UniProtKB:P52657	9606	BHF-UCL		F
+UniProtKB	P20226	TBP	enables	GO:0001091	RNA polymerase II general transcription initiation factor binding	ECO:0000353	IPI	PMID:8670811	UniProtKB:Q01658	9606	ARUK-UCL		F
+UniProtKB	P20226	TBP	enables	GO:0001091	RNA polymerase II general transcription initiation factor binding	ECO:0000353	IPI	PMID:8670811	UniProtKB:Q14919	9606	ARUK-UCL		F
+UniProtKB	P20226	TBP	enables	GO:0001093	TFIIB-class transcription factor binding	ECO:0000353	IPI	PMID:9841876	UniProtKB:Q00403	9606	CAFA		F
+UniProtKB	P21675	TAF1	enables	GO:0001091	RNA polymerase II general transcription initiation factor binding	ECO:0000353	IPI	PMID:8625415	UniProtKB:P35269	9606	BHF-UCL		F
+UniProtKB	P22087	FBL	enables	GO:0001094	TFIID-class transcription factor complex binding	ECO:0000353	IPI	PMID:17636026	UniProtKB:Q16594	9606	UniProt		F
+UniProtKB	P22509	Fbl	enables	GO:0001094	TFIID-class transcription factor complex binding	ECO:0000266	ISO	GO_REF:0000096	UniProtKB:P22087	10116	RGD		F
+UniProtKB	P28715	ERCC5	enables	GO:0000993	RNA polymerase II complex binding	ECO:0000314	IDA	PMID:16246722		9606	UniProt		F
+UniProtKB	P29037	Tbp	enables	GO:0001091	RNA polymerase II general transcription initiation factor binding	ECO:0000265	IEA	GO_REF:0000107	UniProtKB:P20226|ensembl:ENSP00000375942	10090	Ensembl		F
+UniProtKB	P29037	Tbp	enables	GO:0001093	TFIIB-class transcription factor binding	ECO:0000265	IEA	GO_REF:0000107	UniProtKB:P20226|ensembl:ENSP00000375942	10090	Ensembl		F
+UniProtKB	P29084	GTF2E2	contributes_to	GO:0001097	TFIIH-class transcription factor complex binding	ECO:0000318	IBA	GO_REF:0000033	PANTHER:PTN000295707|SGD:S000001770	9606	GO_Central		F
+UniProtKB	P35269	GTF2F1	enables	GO:0001091	RNA polymerase II general transcription initiation factor binding	ECO:0000353	IPI	PMID:8625415	UniProtKB:P21675	9606	BHF-UCL		F
+UniProtKB	P35269	GTF2F1	enables	GO:0001096	TFIIF-class transcription factor complex binding	ECO:0000318	IBA	GO_REF:0000033	FB:FBgn0010282|PANTHER:PTN000313913	9606	GO_Central		F
+UniProtKB	P35550	Fbl	enables	GO:0001094	TFIID-class transcription factor complex binding	ECO:0000265	IEA	GO_REF:0000107	UniProtKB:P22087|ensembl:ENSP00000221801	10090	Ensembl		F
+UniProtKB	P35869	AHR	enables	GO:0001094	TFIID-class transcription factor complex binding	ECO:0000353	IPI	PMID:15641800	UniProtKB:O00268	9606	CAFA		F
+UniProtKB	P35869	AHR	enables	GO:0001094	TFIID-class transcription factor complex binding	ECO:0000353	IPI	PMID:15641800	UniProtKB:O00268,UniProtKB:P20226,UniProtKB:P49848	9606	DisProt		F
+UniProtKB	P35869	AHR	enables	GO:0001094	TFIID-class transcription factor complex binding	ECO:0000353	IPI	PMID:15641800	UniProtKB:P49848	9606	CAFA		F
+UniProtKB	P41738	Ahr	enables	GO:0001094	TFIID-class transcription factor complex binding	ECO:0000266	ISO	GO_REF:0000096	UniProtKB:P35869	10116	RGD		F
+UniProtKB	P41777	Nolc1	enables	GO:0001093	TFIIB-class transcription factor binding	ECO:0000314	IDA	PMID:8972203		10116	RGD		F
+UniProtKB	P45481	Crebbp	enables	GO:0001093	TFIIB-class transcription factor binding	ECO:0000353	IPI	PMID:7913207	PR:P62915	10090	MGI	has_input(PR:P62915)	F
+UniProtKB	P52655	GTF2A1	enables	GO:0001091	RNA polymerase II general transcription initiation factor binding	ECO:0000353	IPI	PMID:8626665	UniProtKB:P52657	9606	BHF-UCL		F
+UniProtKB	P52657	GTF2A2	enables	GO:0001091	RNA polymerase II general transcription initiation factor binding	ECO:0000353	IPI	PMID:8626665	UniProtKB:P52655	9606	BHF-UCL		F
+UniProtKB	P59114	Pcif1	enables	GO:0099122	RNA polymerase II C-terminal domain binding	ECO:0000250	ISS	GO_REF:0000024	UniProtKB:Q9H4Z3	10090	UniProt		F
+UniProtKB	P59114	Pcif1	enables	GO:0099122	RNA polymerase II C-terminal domain binding	ECO:0000501	IEA	GO_REF:0000120	UniProtKB:Q9H4Z3|ensembl:ENSP00000361486|InterPro:IPR039881	10090	UniProt		F
+UniProtKB	P59114	Pcif1	enables	GO:1990269	RNA polymerase II C-terminal domain phosphoserine binding	ECO:0000265	IEA	GO_REF:0000107	UniProtKB:Q9H4Z3|ensembl:ENSP00000361486	10090	Ensembl		F
+UniProtKB	P60002	ELOF1	enables	GO:0000993	RNA polymerase II complex binding	ECO:0000318	IBA	GO_REF:0000033	PANTHER:PTN000468320|SGD:S000001643|UniProtKB:P60002	9606	GO_Central		F
+UniProtKB	P60002	ELOF1	enables	GO:0000993	RNA polymerase II complex binding	ECO:0000314	IDA	PMID:34108662		9606	UniProt		F
+UniProtKB	P60002	ELOF1	enables	GO:0000993	RNA polymerase II complex binding	ECO:0000314	IDA	PMID:34108663		9606	UniProt		F
+UniProtKB	P60003	Elof1	enables	GO:0000993	RNA polymerase II complex binding	ECO:0000318	IBA	GO_REF:0000033	PANTHER:PTN000468320|SGD:S000001643|UniProtKB:P60002	10090	GO_Central		F
+UniProtKB	P60003	Elof1	enables	GO:0000993	RNA polymerase II complex binding	ECO:0000265	IEA	GO_REF:0000107	UniProtKB:P60002|ensembl:ENSP00000252445	10090	Ensembl		F
+UniProtKB	P60003	Elof1	enables	GO:0000993	RNA polymerase II complex binding	ECO:0000250	ISS	PMID:34108662	UniProtKB:P60002	10090	UniProt		F
+UniProtKB	P60122	Ruvbl1	enables	GO:0001094	TFIID-class transcription factor complex binding	ECO:0000256	IEA	GO_REF:0000117	ARBA:ARBA00089076	10090	UniProt		F
+UniProtKB	P60122	Ruvbl1	enables	GO:0001094	TFIID-class transcription factor complex binding	ECO:0000353	IPI	PMID:17636026	UniProtKB:Q16594	10090	UniProt		F
+UniProtKB	P60123	Ruvbl1	enables	GO:0001094	TFIID-class transcription factor complex binding	ECO:0000266	ISO	GO_REF:0000096	MGI:MGI:1928760	10116	RGD		F
+UniProtKB	P62915	Gtf2b	enables	GO:0000993	RNA polymerase II complex binding	ECO:0000250	ISS	GO_REF:0000024	UniProtKB:Q00403	10090	UniProt		F
+UniProtKB	P62915	Gtf2b	enables	GO:0000993	RNA polymerase II complex binding	ECO:0000265	IEA	GO_REF:0000107	UniProtKB:Q00403|ensembl:ENSP00000359531	10090	Ensembl		F
+UniProtKB	P62916	Gtf2b	enables	GO:0000993	RNA polymerase II complex binding	ECO:0000250	ISS	GO_REF:0000024	UniProtKB:Q00403	10116	UniProt		F
+UniProtKB	P62916	Gtf2b	enables	GO:0000993	RNA polymerase II complex binding	ECO:0000266	ISO	GO_REF:0000096	UniProtKB:Q00403	10116	RGD		F
+UniProtKB	P62916	Gtf2b	enables	GO:0000993	RNA polymerase II complex binding	ECO:0000265	IEA	GO_REF:0000107	UniProtKB:Q00403|ensembl:ENSP00000359531	10116	Ensembl		F
+UniProtKB	P63271	Supt4h1a	enables	GO:0000993	RNA polymerase II complex binding	ECO:0000318	IBA	GO_REF:0000033	PANTHER:PTN000306261|SGD:S000003295	10090	GO_Central		F
+UniProtKB	P63272	SUPT4H1	enables	GO:0000993	RNA polymerase II complex binding	ECO:0000318	IBA	GO_REF:0000033	PANTHER:PTN000306261|SGD:S000003295	9606	GO_Central		F
+UniProtKB	P69736	Edf1	enables	GO:0001094	TFIID-class transcription factor complex binding	ECO:0000266	ISO	GO_REF:0000096	UniProtKB:O60869	10116	RGD		F
+UniProtKB	Q00403	GTF2B	enables	GO:0000993	RNA polymerase II complex binding	ECO:0000314	IDA	PMID:8413225		9606	UniProt		F
+UniProtKB	Q00403	GTF2B	enables	GO:0000993	RNA polymerase II complex binding	ECO:0000314	IDA	PMID:8504927		9606	UniProt		F
+UniProtKB	Q00839	HNRNPU	enables	GO:0000993	RNA polymerase II complex binding	ECO:0000314	IDA	PMID:10490622		9606	UniProt		F
+UniProtKB	Q00839	HNRNPU	enables	GO:0001097	TFIIH-class transcription factor complex binding	ECO:0000314	IDA	PMID:10490622		9606	UniProt		F
+UniProtKB	Q00839	HNRNPU	enables	GO:0099122	RNA polymerase II C-terminal domain binding	ECO:0000250	ISS	GO_REF:0000024	UniProtKB:Q8VEK3	9606	UniProt		F
+UniProtKB	Q00839	HNRNPU	enables	GO:0099122	RNA polymerase II C-terminal domain binding	ECO:0000265	IEA	GO_REF:0000107	UniProtKB:Q8VEK3|ensembl:ENSMUSP00000047571	9606	Ensembl		F
+UniProtKB	Q08211	DHX9	enables	GO:0000993	RNA polymerase II complex binding	ECO:0000314	IDA	PMID:11416126		9606	UniProt		F
+UniProtKB	Q12947	FOXF2	enables	GO:0001093	TFIIB-class transcription factor binding	ECO:0000353	IPI	PMID:9722567	UniProtKB:Q00403	9606	UniProt		F
+UniProtKB	Q14919	DRAP1	enables	GO:0001091	RNA polymerase II general transcription initiation factor binding	ECO:0000314	IDA	PMID:8608938		9606	ARUK-UCL		F
+UniProtKB	Q14919	DRAP1	enables	GO:0001091	RNA polymerase II general transcription initiation factor binding	ECO:0000353	IPI	PMID:8670811	UniProtKB:Q01658	9606	ARUK-UCL		F
+UniProtKB	Q15061	WDR43	enables	GO:0000993	RNA polymerase II complex binding	ECO:0000250	ISS	GO_REF:0000024	UniProtKB:Q6ZQL4	9606	UniProt		F
+UniProtKB	Q15061	WDR43	enables	GO:0000993	RNA polymerase II complex binding	ECO:0000265	IEA	GO_REF:0000107	UniProtKB:Q6ZQL4|ensembl:ENSMUSP00000048337	9606	Ensembl		F
+UniProtKB	Q15545	TAF7	enables	GO:0001097	TFIIH-class transcription factor complex binding	ECO:0000314	IDA	PMID:18391197		9606	UniProt		F
+UniProtKB	Q2YD98	UVSSA	enables	GO:0000993	RNA polymerase II complex binding	ECO:0000318	IBA	GO_REF:0000033	PANTHER:PTN002010268|UniProtKB:Q2YD98	9606	GO_Central		F
+UniProtKB	Q2YD98	UVSSA	enables	GO:0000993	RNA polymerase II complex binding	ECO:0000315	IMP	PMID:22466610		9606	UniProt		F
+UniProtKB	Q2YD98	UVSSA	enables	GO:0000993	RNA polymerase II complex binding	ECO:0000314	IDA	PMID:22466611		9606	UniProt		F
+UniProtKB	Q2YD98	UVSSA	enables	GO:0000993	RNA polymerase II complex binding	ECO:0000314	IDA	PMID:22466612		9606	UniProt		F
+UniProtKB	Q3THK3	Gtf2f1	enables	GO:0001091	RNA polymerase II general transcription initiation factor binding	ECO:0000265	IEA	GO_REF:0000107	UniProtKB:P35269|ensembl:ENSP00000377969	10090	Ensembl		F
+UniProtKB	Q3THK3	Gtf2f1	enables	GO:0001096	TFIIF-class transcription factor complex binding	ECO:0000318	IBA	GO_REF:0000033	FB:FBgn0010282|PANTHER:PTN000313913	10090	GO_Central		F
+UniProtKB	Q3TLD5	Uri1	enables	GO:0000993	RNA polymerase II complex binding	ECO:0000265	IEA	GO_REF:0000107	UniProtKB:O94763|ensembl:ENSP00000376097	10090	Ensembl		F
+UniProtKB	Q3UFB2	Znhit6	enables	GO:0001094	TFIID-class transcription factor complex binding	ECO:0000265	IEA	GO_REF:0000107	UniProtKB:Q9NWK9|ensembl:ENSP00000359606	10090	Ensembl		F
+UniProtKB	Q496Z0	Elp2	contributes_to	GO:0000993	RNA polymerase II complex binding	ECO:0000266	ISO	GO_REF:0000096	UniProtKB:Q6IA86	10116	RGD		F
+UniProtKB	Q496Z0	Elp2	contributes_to	GO:0000993	RNA polymerase II complex binding	ECO:0000265	IEA	GO_REF:0000107	UniProtKB:Q6IA86|ensembl:ENSP00000350967	10116	Ensembl		F
+UniProtKB	Q4V886	Paf1	enables	GO:0000993	RNA polymerase II complex binding	ECO:0000250	ISS	GO_REF:0000024	UniProtKB:Q8N7H5	10116	UniProt		F
+UniProtKB	Q4V886	Paf1	enables	GO:0000993	RNA polymerase II complex binding	ECO:0000318	IBA	GO_REF:0000033	PANTHER:PTN000573292|SGD:S000000483|UniProtKB:Q8N7H5	10116	GO_Central		F
+UniProtKB	Q4V886	Paf1	enables	GO:0000993	RNA polymerase II complex binding	ECO:0000266	ISO	GO_REF:0000096	UniProtKB:Q8N7H5	10116	RGD		F
+UniProtKB	Q4V886	Paf1	enables	GO:0000993	RNA polymerase II complex binding	ECO:0000265	IEA	GO_REF:0000107	UniProtKB:Q8N7H5|ensembl:ENSP00000221265	10116	Ensembl		F
+UniProtKB	Q4V8C8	Cdc73	enables	GO:0000993	RNA polymerase II complex binding	ECO:0000250	ISS	GO_REF:0000024	UniProtKB:Q6P1J9	10116	UniProt		F
+UniProtKB	Q4V8C8	Cdc73	enables	GO:0000993	RNA polymerase II complex binding	ECO:0000318	IBA	GO_REF:0000033	PANTHER:PTN000279609|SGD:S000004410|UniProtKB:Q6P1J9	10116	GO_Central		F
+UniProtKB	Q4V8C8	Cdc73	enables	GO:0000993	RNA polymerase II complex binding	ECO:0000266	ISO	GO_REF:0000096	UniProtKB:Q6P1J9	10116	RGD		F
+UniProtKB	Q5BKZ1	ZNF326	enables	GO:0000993	RNA polymerase II complex binding	ECO:0000314	IDA	PMID:22446626		9606	UniProt		F
+UniProtKB	Q5U4C3	Scaf1	enables	GO:0099122	RNA polymerase II C-terminal domain binding	ECO:0000318	IBA	GO_REF:0000033	PANTHER:PTN002931348|UniProtKB:Q9H7N4	10090	GO_Central		F
+UniProtKB	Q5U4C3	Scaf1	enables	GO:0099122	RNA polymerase II C-terminal domain binding	ECO:0000265	IEA	GO_REF:0000107	UniProtKB:Q9H7N4|ensembl:ENSP00000353769	10090	Ensembl		F
+UniProtKB	Q5VT52	RPRD2	enables	GO:0000993	RNA polymerase II complex binding	ECO:0000318	IBA	GO_REF:0000033	PANTHER:PTN000279186|SGD:S000002697|UniProtKB:Q9NQG5	9606	GO_Central		F
+UniProtKB	Q5VT52	RPRD2	enables	GO:0099122	RNA polymerase II C-terminal domain binding	ECO:0000256	IEA	GO_REF:0000002	InterPro:IPR047885	9606	InterPro		F
+UniProtKB	Q5XJE5	Leo1	enables	GO:1990269	RNA polymerase II C-terminal domain phosphoserine binding	ECO:0000318	IBA	GO_REF:0000033	PANTHER:PTN000567381|SGD:S000005649	10090	GO_Central		F
+UniProtKB	Q60722	Tcf4	enables	GO:0001093	TFIIB-class transcription factor binding	ECO:0000314	IDA	PMID:8978694		10090	BHF-UCL		F
+UniProtKB	Q61539	Esrrb	enables	GO:0000993	RNA polymerase II complex binding	ECO:0000314	IDA	PMID:23019124		10090	UniProt		F
+UniProtKB	Q62018	Ctr9	enables	GO:0000993	RNA polymerase II complex binding	ECO:0000318	IBA	GO_REF:0000033	PANTHER:PTN000361535|SGD:S000005505	10090	GO_Central		F
+UniProtKB	Q62655	Tcf4	enables	GO:0001093	TFIIB-class transcription factor binding	ECO:0000266	ISO	GO_REF:0000096	MGI:MGI:98506	10116	RGD		F
+UniProtKB	Q63623	Scaf8	enables	GO:0000993	RNA polymerase II complex binding	ECO:0000318	IBA	GO_REF:0000033	PANTHER:PTN000408520|PomBase:SPAC4G9.04c|SGD:S000002636|UniProtKB:O94913|UniProtKB:Q9UPN6	10116	GO_Central		F
+UniProtKB	Q63623	Scaf8	enables	GO:1990269	RNA polymerase II C-terminal domain phosphoserine binding	ECO:0000250	ISS	GO_REF:0000024	UniProtKB:Q9UPN6	10116	UniProt		F
+UniProtKB	Q63623	Scaf8	enables	GO:1990269	RNA polymerase II C-terminal domain phosphoserine binding	ECO:0000266	ISO	GO_REF:0000096	UniProtKB:Q9UPN6	10116	RGD		F
+UniProtKB	Q63624	Scaf1	enables	GO:0099122	RNA polymerase II C-terminal domain binding	ECO:0000318	IBA	GO_REF:0000033	PANTHER:PTN002931348|UniProtKB:Q9H7N4	10116	GO_Central		F
+UniProtKB	Q63624	Scaf1	enables	GO:0099122	RNA polymerase II C-terminal domain binding	ECO:0000266	ISO	GO_REF:0000096	UniProtKB:Q9H7N4	10116	RGD		F
+UniProtKB	Q63624	Scaf1	enables	GO:0099122	RNA polymerase II C-terminal domain binding	ECO:0000265	IEA	GO_REF:0000107	UniProtKB:Q9H7N4|ensembl:ENSP00000353769	10116	Ensembl		F
+UniProtKB	Q63627	Scaf4	enables	GO:1990269	RNA polymerase II C-terminal domain phosphoserine binding	ECO:0000250	ISS	GO_REF:0000024	UniProtKB:O95104	10116	UniProt		F
+UniProtKB	Q63627	Scaf4	enables	GO:1990269	RNA polymerase II C-terminal domain phosphoserine binding	ECO:0000318	IBA	GO_REF:0000033	PANTHER:PTN002751398|UniProtKB:O95104	10116	GO_Central		F
+UniProtKB	Q63627	Scaf4	enables	GO:1990269	RNA polymerase II C-terminal domain phosphoserine binding	ECO:0000266	ISO	GO_REF:0000096	UniProtKB:O95104	10116	RGD		F
+UniProtKB	Q641X2	Leo1	enables	GO:1990269	RNA polymerase II C-terminal domain phosphoserine binding	ECO:0000318	IBA	GO_REF:0000033	PANTHER:PTN000567381|SGD:S000005649	10116	GO_Central		F
+UniProtKB	Q6AY96	Gtf2f1	enables	GO:0001091	RNA polymerase II general transcription initiation factor binding	ECO:0000266	ISO	GO_REF:0000096	UniProtKB:P35269	10116	RGD		F
+UniProtKB	Q6AY96	Gtf2f1	enables	GO:0001091	RNA polymerase II general transcription initiation factor binding	ECO:0000265	IEA	GO_REF:0000107	UniProtKB:P35269|ensembl:ENSP00000377969	10116	Ensembl		F
+UniProtKB	Q6AY96	Gtf2f1	enables	GO:0001096	TFIIF-class transcription factor complex binding	ECO:0000318	IBA	GO_REF:0000033	FB:FBgn0010282|PANTHER:PTN000313913	10116	GO_Central		F
+UniProtKB	Q6DFW4	Nop58	enables	GO:0001094	TFIID-class transcription factor complex binding	ECO:0000265	IEA	GO_REF:0000107	UniProtKB:Q9Y2X3|ensembl:ENSP00000264279	10090	Ensembl		F
+UniProtKB	Q6DID3	Scaf8	enables	GO:0000993	RNA polymerase II complex binding	ECO:0000318	IBA	GO_REF:0000033	PANTHER:PTN000408520|PomBase:SPAC4G9.04c|SGD:S000002636|UniProtKB:O94913|UniProtKB:Q9UPN6	10090	GO_Central		F
+UniProtKB	Q6DID3	Scaf8	enables	GO:1990269	RNA polymerase II C-terminal domain phosphoserine binding	ECO:0000250	ISS	GO_REF:0000024	UniProtKB:Q9UPN6	10090	UniProt		F
+UniProtKB	Q6DID3	Scaf8	enables	GO:1990269	RNA polymerase II C-terminal domain phosphoserine binding	ECO:0000265	IEA	GO_REF:0000107	UniProtKB:Q9UPN6|ensembl:ENSP00000356146	10090	Ensembl		F
+UniProtKB	Q6IA86	ELP2	contributes_to	GO:0000993	RNA polymerase II complex binding	ECO:0000314	IDA	PMID:11714725		9606	BHF-UCL		F
+UniProtKB	Q6IMY8	Hnrnpu	enables	GO:0000993	RNA polymerase II complex binding	ECO:0000266	ISO	GO_REF:0000096	UniProtKB:Q00839	10116	RGD		F
+UniProtKB	Q6IMY8	Hnrnpu	enables	GO:0001097	TFIIH-class transcription factor complex binding	ECO:0000266	ISO	GO_REF:0000096	UniProtKB:Q00839	10116	RGD		F
+UniProtKB	Q6IMY8	Hnrnpu	enables	GO:0099122	RNA polymerase II C-terminal domain binding	ECO:0000250	ISS	GO_REF:0000024	UniProtKB:Q8VEK3	10116	UniProt		F
+UniProtKB	Q6IMY8	Hnrnpu	enables	GO:0099122	RNA polymerase II C-terminal domain binding	ECO:0000266	ISO	GO_REF:0000096	MGI:MGI:1858195	10116	RGD		F
+UniProtKB	Q6JHU9	Crebbp	enables	GO:0001093	TFIIB-class transcription factor binding	ECO:0000266	ISO	GO_REF:0000096	MGI:MGI:1098280	10116	RGD		F
+UniProtKB	Q6NXI6	Rprd2	enables	GO:0000993	RNA polymerase II complex binding	ECO:0000318	IBA	GO_REF:0000033	PANTHER:PTN000279186|SGD:S000002697|UniProtKB:Q9NQG5	10090	GO_Central		F
+UniProtKB	Q6NXI6	Rprd2	enables	GO:0099122	RNA polymerase II C-terminal domain binding	ECO:0000256	IEA	GO_REF:0000002	InterPro:IPR047885	10090	InterPro		F
+UniProtKB	Q6P1J9	CDC73	enables	GO:0000993	RNA polymerase II complex binding	ECO:0000318	IBA	GO_REF:0000033	PANTHER:PTN000279609|SGD:S000004410|UniProtKB:Q6P1J9	9606	GO_Central		F
+UniProtKB	Q6P1J9	CDC73	enables	GO:0000993	RNA polymerase II complex binding	ECO:0000314	IDA	PMID:15923622		9606	UniProt		F
+UniProtKB	Q6P6I6	Polr2m	enables	GO:0000993	RNA polymerase II complex binding	ECO:0000265	IEA	GO_REF:0000107	UniProtKB:P0CAP2|ensembl:ENSP00000299638	10090	Ensembl		F
+UniProtKB	Q6PD62	CTR9	enables	GO:0000993	RNA polymerase II complex binding	ECO:0000318	IBA	GO_REF:0000033	PANTHER:PTN000361535|SGD:S000005505	9606	GO_Central		F
+UniProtKB	Q6ZQL4	Wdr43	enables	GO:0000993	RNA polymerase II complex binding	ECO:0000314	IDA	PMID:31128943		10090	UniProt		F
+UniProtKB	Q7M6Z3	Smyd2	enables	GO:0000993	RNA polymerase II complex binding	ECO:0000250	ISS	GO_REF:0000024	UniProtKB:Q8R5A0	10116	UniProt		F
+UniProtKB	Q7M6Z3	Smyd2	enables	GO:0000993	RNA polymerase II complex binding	ECO:0000266	ISO	GO_REF:0000096	MGI:MGI:1915889	10116	RGD		F
+UniProtKB	Q7M6Z3	Smyd2	enables	GO:0000993	RNA polymerase II complex binding	ECO:0000265	IEA	GO_REF:0000107	UniProtKB:Q8R5A0|ensembl:ENSMUSP00000027897	10116	Ensembl		F
+UniProtKB	Q7TSG2	Ctdp1	enables	GO:0001096	TFIIF-class transcription factor complex binding	ECO:0000265	IEA	GO_REF:0000107	UniProtKB:Q9Y5B0|ensembl:ENSP00000484525	10090	Ensembl		F
+UniProtKB	Q7TSH6	Scaf4	enables	GO:1990269	RNA polymerase II C-terminal domain phosphoserine binding	ECO:0000250	ISS	GO_REF:0000024	UniProtKB:O95104	10090	UniProt		F
+UniProtKB	Q7TSH6	Scaf4	enables	GO:1990269	RNA polymerase II C-terminal domain phosphoserine binding	ECO:0000318	IBA	GO_REF:0000033	PANTHER:PTN002751398|UniProtKB:O95104	10090	GO_Central		F
+UniProtKB	Q7TSH6	Scaf4	enables	GO:1990269	RNA polymerase II C-terminal domain phosphoserine binding	ECO:0000265	IEA	GO_REF:0000107	UniProtKB:O95104|ensembl:ENSP00000286835	10090	Ensembl		F
+UniProtKB	Q80ZM7	Gtf2a2	enables	GO:0001091	RNA polymerase II general transcription initiation factor binding	ECO:0000265	IEA	GO_REF:0000107	UniProtKB:P52657|ensembl:ENSP00000379372	10090	Ensembl		F
+UniProtKB	Q8CJG0	Ago2	enables	GO:0000993	RNA polymerase II complex binding	ECO:0000265	IEA	GO_REF:0000107	UniProtKB:Q9UKV8|ensembl:ENSP00000220592	10090	Ensembl		F
+UniProtKB	Q8CJG1	Ago1	enables	GO:0000993	RNA polymerase II complex binding	ECO:0000265	IEA	GO_REF:0000107	UniProtKB:Q9UL18|ensembl:ENSP00000362300	10090	Ensembl		F
+UniProtKB	Q8JZM7	Cdc73	enables	GO:0000993	RNA polymerase II complex binding	ECO:0000250	ISS	GO_REF:0000024	UniProtKB:Q6P1J9	10090	UniProt		F
+UniProtKB	Q8JZM7	Cdc73	enables	GO:0000993	RNA polymerase II complex binding	ECO:0000318	IBA	GO_REF:0000033	PANTHER:PTN000279609|SGD:S000004410|UniProtKB:Q6P1J9	10090	GO_Central		F
+UniProtKB	Q8JZM7	Cdc73	enables	GO:0000993	RNA polymerase II complex binding	ECO:0000265	IEA	GO_REF:0000107	UniProtKB:Q6P1J9|ensembl:ENSP00000356405	10090	Ensembl		F
+UniProtKB	Q8K2T8	Paf1	enables	GO:0000993	RNA polymerase II complex binding	ECO:0000250	ISS	GO_REF:0000024	UniProtKB:Q8N7H5	10090	UniProt		F
+UniProtKB	Q8K2T8	Paf1	enables	GO:0000993	RNA polymerase II complex binding	ECO:0000318	IBA	GO_REF:0000033	PANTHER:PTN000573292|SGD:S000000483|UniProtKB:Q8N7H5	10090	GO_Central		F
+UniProtKB	Q8K2T8	Paf1	enables	GO:0000993	RNA polymerase II complex binding	ECO:0000265	IEA	GO_REF:0000107	UniProtKB:Q8N7H5|ensembl:ENSP00000221265	10090	Ensembl		F
+UniProtKB	Q8N163	CCAR2	enables	GO:0000993	RNA polymerase II complex binding	ECO:0000314	IDA	PMID:22446626		9606	UniProt		F
+UniProtKB	Q8N7H5	PAF1	enables	GO:0000993	RNA polymerase II complex binding	ECO:0000318	IBA	GO_REF:0000033	PANTHER:PTN000573292|SGD:S000000483|UniProtKB:Q8N7H5	9606	GO_Central		F
+UniProtKB	Q8N7H5	PAF1	enables	GO:0000993	RNA polymerase II complex binding	ECO:0000314	IDA	PMID:15923622		9606	UniProt		F
+UniProtKB	Q8R5A0	Smyd2	enables	GO:0000993	RNA polymerase II complex binding	ECO:0000314	IDA	PMID:20305823		10090	UniProt		F
+UniProtKB	Q8VDP4	Ccar2	enables	GO:0000993	RNA polymerase II complex binding	ECO:0000250	ISS	GO_REF:0000024	UniProtKB:Q8N163	10090	UniProt		F
+UniProtKB	Q8VDP4	Ccar2	enables	GO:0000993	RNA polymerase II complex binding	ECO:0000265	IEA	GO_REF:0000107	UniProtKB:Q8N163|ensembl:ENSP00000310670	10090	Ensembl		F
+UniProtKB	Q8VDS4	Rprd1a	enables	GO:0000993	RNA polymerase II complex binding	ECO:0000318	IBA	GO_REF:0000033	PANTHER:PTN000279186|SGD:S000002697|UniProtKB:Q9NQG5	10090	GO_Central		F
+UniProtKB	Q8VDS4	Rprd1a	enables	GO:0099122	RNA polymerase II C-terminal domain binding	ECO:0000256	IEA	GO_REF:0000002	InterPro:IPR047884	10090	InterPro		F
+UniProtKB	Q8VEK3	Hnrnpu	enables	GO:0000993	RNA polymerase II complex binding	ECO:0000250	ISS	GO_REF:0000024	UniProtKB:Q00839	10090	UniProt		F
+UniProtKB	Q8VEK3	Hnrnpu	enables	GO:0000993	RNA polymerase II complex binding	ECO:0000265	IEA	GO_REF:0000107	UniProtKB:Q00839|ensembl:ENSP00000491215	10090	Ensembl		F
+UniProtKB	Q8VEK3	Hnrnpu	enables	GO:0001097	TFIIH-class transcription factor complex binding	ECO:0000250	ISS	GO_REF:0000024	UniProtKB:Q00839	10090	UniProt		F
+UniProtKB	Q8VEK3	Hnrnpu	enables	GO:0001097	TFIIH-class transcription factor complex binding	ECO:0000265	IEA	GO_REF:0000107	UniProtKB:Q00839|ensembl:ENSP00000491215	10090	Ensembl		F
+UniProtKB	Q8VEK3	Hnrnpu	enables	GO:0099122	RNA polymerase II C-terminal domain binding	ECO:0000314	IDA	PMID:21235343		10090	UniProt		F
+UniProtKB	Q8VID5	Recql5	enables	GO:0000993	RNA polymerase II complex binding	ECO:0000250	ISS	GO_REF:0000024	UniProtKB:O94762	10090	UniProt		F
+UniProtKB	Q8VID5	Recql5	enables	GO:0000993	RNA polymerase II complex binding	ECO:0000265	IEA	GO_REF:0000107	UniProtKB:O94762|ensembl:ENSP00000317636	10090	Ensembl		F
+UniProtKB	Q8WVC0	LEO1	enables	GO:1990269	RNA polymerase II C-terminal domain phosphoserine binding	ECO:0000318	IBA	GO_REF:0000033	PANTHER:PTN000567381|SGD:S000005649	9606	GO_Central		F
+UniProtKB	Q91WG4	Elp2	contributes_to	GO:0000993	RNA polymerase II complex binding	ECO:0000265	IEA	GO_REF:0000107	UniProtKB:Q6IA86|ensembl:ENSP00000350967	10090	Ensembl		F
+UniProtKB	Q91XQ4	Polr2m	enables	GO:0000993	RNA polymerase II complex binding	ECO:0000266	ISO	GO_REF:0000096	UniProtKB:P0CAP2	10116	RGD		F
+UniProtKB	Q924H7	Wac	enables	GO:0000993	RNA polymerase II complex binding	ECO:0000250	ISS	GO_REF:0000024	UniProtKB:Q9BTA9	10090	UniProt		F
+UniProtKB	Q924H7	Wac	enables	GO:0000993	RNA polymerase II complex binding	ECO:0000318	IBA	GO_REF:0000033	PANTHER:PTN000408306|UniProtKB:Q9BTA9	10090	GO_Central		F
+UniProtKB	Q924H7	Wac	enables	GO:0000993	RNA polymerase II complex binding	ECO:0000265	IEA	GO_REF:0000107	UniProtKB:Q9BTA9|ensembl:ENSP00000346986	10090	Ensembl		F
+UniProtKB	Q92889	ERCC4	enables	GO:0001094	TFIID-class transcription factor complex binding	ECO:0000265	IEA	GO_REF:0000107	UniProtKB:Q9QZD4|ensembl:ENSMUSP00000023206	9606	Ensembl		F
+UniProtKB	Q96P16	RPRD1A	enables	GO:0000993	RNA polymerase II complex binding	ECO:0000318	IBA	GO_REF:0000033	PANTHER:PTN000279186|SGD:S000002697|UniProtKB:Q9NQG5	9606	GO_Central		F
+UniProtKB	Q96P16	RPRD1A	enables	GO:0099122	RNA polymerase II C-terminal domain binding	ECO:0000256	IEA	GO_REF:0000002	InterPro:IPR047884	9606	InterPro		F
+UniProtKB	Q99PM3	Gtf2a1	enables	GO:0001091	RNA polymerase II general transcription initiation factor binding	ECO:0000265	IEA	GO_REF:0000107	UniProtKB:P52655|ensembl:ENSP00000452454	10090	Ensembl		F
+UniProtKB	Q9BRT6	LLPH	enables	GO:0001099	basal RNA polymerase II transcription machinery binding	ECO:0000250	ISS	GO_REF:0000024	UniProtKB:Q9D945	9606	UniProt		F
+UniProtKB	Q9BRT6	LLPH	enables	GO:0001099	basal RNA polymerase II transcription machinery binding	ECO:0000318	IBA	GO_REF:0000033	MGI:MGI:1913475|PANTHER:PTN002151938	9606	GO_Central		F
+UniProtKB	Q9BRT6	LLPH	enables	GO:0001099	basal RNA polymerase II transcription machinery binding	ECO:0000265	IEA	GO_REF:0000107	UniProtKB:Q9D945|ensembl:ENSMUSP00000020444	9606	Ensembl		F
+UniProtKB	Q9BTA9	WAC	enables	GO:0000993	RNA polymerase II complex binding	ECO:0000318	IBA	GO_REF:0000033	PANTHER:PTN000408306|UniProtKB:Q9BTA9	9606	GO_Central		F
+UniProtKB	Q9BTA9	WAC	enables	GO:0000993	RNA polymerase II complex binding	ECO:0000314	IDA	PMID:21329877		9606	UniProt		F
+UniProtKB	Q9CQE8	RTRAF	enables	GO:0000993	RNA polymerase II complex binding	ECO:0000250	ISS	GO_REF:0000024	UniProtKB:Q9Y224	10090	UniProt		F
+UniProtKB	Q9CQE8	RTRAF	enables	GO:0000993	RNA polymerase II complex binding	ECO:0000265	IEA	GO_REF:0000107	UniProtKB:Q9Y224|ensembl:ENSP00000261700	10090	Ensembl		F
+UniProtKB	Q9CSU0	Rprd1b	enables	GO:0000993	RNA polymerase II complex binding	ECO:0000250	ISS	GO_REF:0000024	UniProtKB:Q9NQG5	10090	UniProt		F
+UniProtKB	Q9CSU0	Rprd1b	enables	GO:0000993	RNA polymerase II complex binding	ECO:0000318	IBA	GO_REF:0000033	PANTHER:PTN000279186|SGD:S000002697|UniProtKB:Q9NQG5	10090	GO_Central		F
+UniProtKB	Q9CSU0	Rprd1b	enables	GO:0000993	RNA polymerase II complex binding	ECO:0000265	IEA	GO_REF:0000107	UniProtKB:Q9NQG5|ensembl:ENSP00000362532	10090	Ensembl		F
+UniProtKB	Q9CSU0	Rprd1b	enables	GO:0099122	RNA polymerase II C-terminal domain binding	ECO:0000256	IEA	GO_REF:0000002	InterPro:IPR047882	10090	InterPro		F
+UniProtKB	Q9CWR2	Smyd3	enables	GO:0000993	RNA polymerase II complex binding	ECO:0000314	IDA	PMID:23752591		10090	MGI		F
+UniProtKB	Q9D479	Uvssa	enables	GO:0000993	RNA polymerase II complex binding	ECO:0000250	ISS	GO_REF:0000024	UniProtKB:Q2YD98	10090	UniProt		F
+UniProtKB	Q9D479	Uvssa	enables	GO:0000993	RNA polymerase II complex binding	ECO:0000318	IBA	GO_REF:0000033	PANTHER:PTN002010268|UniProtKB:Q2YD98	10090	GO_Central		F
+UniProtKB	Q9D479	Uvssa	enables	GO:0000993	RNA polymerase II complex binding	ECO:0000265	IEA	GO_REF:0000107	UniProtKB:Q2YD98|ensembl:ENSP00000374501	10090	Ensembl		F
+UniProtKB	Q9D902	Gtf2e2	contributes_to	GO:0001097	TFIIH-class transcription factor complex binding	ECO:0000318	IBA	GO_REF:0000033	PANTHER:PTN000295707|SGD:S000001770	10090	GO_Central		F
+UniProtKB	Q9D945	Llph	enables	GO:0001099	basal RNA polymerase II transcription machinery binding	ECO:0000318	IBA	GO_REF:0000033	MGI:MGI:1913475|PANTHER:PTN002151938	10090	GO_Central		F
+UniProtKB	Q9D945	Llph	enables	GO:0001099	basal RNA polymerase II transcription machinery binding	ECO:0000314	IDA	PMID:26961175		10090	UniProt		F
+UniProtKB	Q9EPU2	Ncoa3	enables	GO:0000993	RNA polymerase II complex binding	ECO:0000250	ISS	GO_REF:0000024	UniProtKB:O09000	10116	UniProt		F
+UniProtKB	Q9EPU2	Ncoa3	enables	GO:0000993	RNA polymerase II complex binding	ECO:0000266	ISO	GO_REF:0000096	MGI:MGI:1276535	10116	RGD		F
+UniProtKB	Q9ESU6	Brd4	enables	GO:0099122	RNA polymerase II C-terminal domain binding	ECO:0000266	ISO	GO_REF:0000008	UniProtKB:O60885	10090	MGI		F
+UniProtKB	Q9ESU6	Brd4	enables	GO:0099122	RNA polymerase II C-terminal domain binding	ECO:0000353	IPI	PMID:22509028	PR:P08775	10090	MGI	has_input(PR:P08775)	F
+UniProtKB	Q9H4Z3	PCIF1	enables	GO:0099122	RNA polymerase II C-terminal domain binding	ECO:0000256	IEA	GO_REF:0000002	InterPro:IPR039881	9606	InterPro		F
+UniProtKB	Q9H4Z3	PCIF1	enables	GO:0099122	RNA polymerase II C-terminal domain binding	ECO:0000314	IDA	PMID:18294453		9606	UniProt		F
+UniProtKB	Q9H4Z3	PCIF1	enables	GO:0099122	RNA polymerase II C-terminal domain binding	ECO:0000314	IDA	PMID:30467178		9606	UniProt		F
+UniProtKB	Q9H4Z3	PCIF1	enables	GO:1990269	RNA polymerase II C-terminal domain phosphoserine binding	ECO:0000314	IDA	PMID:32814042		9606	FlyBase		F
+UniProtKB	Q9H7B4	SMYD3	enables	GO:0000993	RNA polymerase II complex binding	ECO:0000265	IEA	GO_REF:0000107	UniProtKB:Q9CWR2|ensembl:ENSMUSP00000117410	9606	Ensembl		F
+UniProtKB	Q9H7N4	SCAF1	enables	GO:0099122	RNA polymerase II C-terminal domain binding	ECO:0000318	IBA	GO_REF:0000033	PANTHER:PTN002931348|UniProtKB:Q9H7N4	9606	GO_Central		F
+UniProtKB	Q9H7N4	SCAF1	enables	GO:0099122	RNA polymerase II C-terminal domain binding	ECO:0000353	IPI	PMID:15992770	UniProtKB:P24928	9606	UniProt		F
+UniProtKB	Q9JMG1	Edf1	enables	GO:0001094	TFIID-class transcription factor complex binding	ECO:0000265	IEA	GO_REF:0000107	UniProtKB:O60869|ensembl:ENSP00000224073	10090	Ensembl		F
+UniProtKB	Q9NQG5	RPRD1B	enables	GO:0000993	RNA polymerase II complex binding	ECO:0000318	IBA	GO_REF:0000033	PANTHER:PTN000279186|SGD:S000002697|UniProtKB:Q9NQG5	9606	GO_Central		F
+UniProtKB	Q9NQG5	RPRD1B	enables	GO:0000993	RNA polymerase II complex binding	ECO:0000314	IDA	PMID:22264791		9606	UniProt		F
+UniProtKB	Q9NQG5	RPRD1B	enables	GO:0099122	RNA polymerase II C-terminal domain binding	ECO:0000256	IEA	GO_REF:0000002	InterPro:IPR047882	9606	InterPro		F
+UniProtKB	Q9NRG4	SMYD2	enables	GO:0000993	RNA polymerase II complex binding	ECO:0000250	ISS	GO_REF:0000024	UniProtKB:Q8R5A0	9606	UniProt		F
+UniProtKB	Q9NRG4	SMYD2	enables	GO:0000993	RNA polymerase II complex binding	ECO:0000265	IEA	GO_REF:0000107	UniProtKB:Q8R5A0|ensembl:ENSMUSP00000027897	9606	Ensembl		F
+UniProtKB	Q9NWK9	ZNHIT6	enables	GO:0001094	TFIID-class transcription factor complex binding	ECO:0000353	IPI	PMID:17636026	UniProtKB:Q16594	9606	UniProt		F
+UniProtKB	Q9QZ81	Ago2	enables	GO:0000993	RNA polymerase II complex binding	ECO:0000266	ISO	GO_REF:0000096	UniProtKB:Q9UKV8	10116	RGD		F
+UniProtKB	Q9QZ86	Nop58	enables	GO:0001094	TFIID-class transcription factor complex binding	ECO:0000266	ISO	GO_REF:0000096	UniProtKB:Q9Y2X3	10116	RGD		F
+UniProtKB	Q9QZ86	Nop58	enables	GO:0001094	TFIID-class transcription factor complex binding	ECO:0000265	IEA	GO_REF:0000107	UniProtKB:Q9Y2X3|ensembl:ENSP00000264279	10116	Ensembl		F
+UniProtKB	Q9QZD4	Ercc4	enables	GO:0001094	TFIID-class transcription factor complex binding	ECO:0000314	IDA	PMID:22323595		10090	MGI		F
+UniProtKB	Q9R1C0	Taf7	enables	GO:0001097	TFIIH-class transcription factor complex binding	ECO:0000265	IEA	GO_REF:0000107	UniProtKB:Q15545|ensembl:ENSP00000312709	10090	Ensembl		F
+UniProtKB	Q9UKV8	AGO2	enables	GO:0000993	RNA polymerase II complex binding	ECO:0000314	IDA	PMID:25336585		9606	BHF-UCL		F
+UniProtKB	Q9UL18	AGO1	enables	GO:0000993	RNA polymerase II complex binding	ECO:0000314	IDA	PMID:25336585		9606	BHF-UCL		F
+UniProtKB	Q9UPN6	SCAF8	enables	GO:0000993	RNA polymerase II complex binding	ECO:0000318	IBA	GO_REF:0000033	PANTHER:PTN000408520|PomBase:SPAC4G9.04c|SGD:S000002636|UniProtKB:O94913|UniProtKB:Q9UPN6	9606	GO_Central		F
+UniProtKB	Q9UPN6	SCAF8	enables	GO:1990269	RNA polymerase II C-terminal domain phosphoserine binding	ECO:0000256	IEA	GO_REF:0000117	ARBA:ARBA00089787	9606	UniProt		F
+UniProtKB	Q9UPN6	SCAF8	enables	GO:1990269	RNA polymerase II C-terminal domain phosphoserine binding	ECO:0000314	IDA	PMID:31104839		9606	UniProt		F
+UniProtKB	Q9WTM5	Ruvbl2	enables	GO:0001094	TFIID-class transcription factor complex binding	ECO:0000256	IEA	GO_REF:0000117	ARBA:ARBA00089076	10090	UniProt		F
+UniProtKB	Q9WTM5	Ruvbl2	enables	GO:0001094	TFIID-class transcription factor complex binding	ECO:0000353	IPI	PMID:17636026	UniProtKB:Q16594	10090	UniProt		F
+UniProtKB	Q9Y224	RTRAF	enables	GO:0000993	RNA polymerase II complex binding	ECO:0000314	IDA	PMID:16950395		9606	UniProt		F
+UniProtKB	Q9Y230	RUVBL2	enables	GO:0001094	TFIID-class transcription factor complex binding	ECO:0000265	IEA	GO_REF:0000107	UniProtKB:Q9WTM5|ensembl:ENSMUSP00000147502	9606	Ensembl		F
+UniProtKB	Q9Y265	RUVBL1	enables	GO:0001094	TFIID-class transcription factor complex binding	ECO:0000265	IEA	GO_REF:0000107	UniProtKB:P60122|ensembl:ENSMUSP00000032165	9606	Ensembl		F
+UniProtKB	Q9Y2X3	NOP58	enables	GO:0001094	TFIID-class transcription factor complex binding	ECO:0000353	IPI	PMID:17636026	UniProtKB:Q16594	9606	UniProt		F
+UniProtKB	Q9Y5B0	CTDP1	enables	GO:0001096	TFIIF-class transcription factor complex binding	ECO:0000353	IPI	PMID:12732728	UniProtKB:P35269	9606	CAFA		F
+UniProtKB	Q9Y5B0	CTDP1	enables	GO:0001096	TFIIF-class transcription factor complex binding	ECO:0000353	IPI	PMID:15723517	UniProtKB:P35269	9606	CAFA		F
+UniProtKB	Q9Y6Q9	NCOA3	enables	GO:0000993	RNA polymerase II complex binding	ECO:0000250	ISS	GO_REF:0000024	UniProtKB:O09000	9606	UniProt		F
+UniProtKB	Q9Z199	Supt4h1b	enables	GO:0000993	RNA polymerase II complex binding	ECO:0000318	IBA	GO_REF:0000033	PANTHER:PTN000306261|SGD:S000003295	10090	GO_Central		F
