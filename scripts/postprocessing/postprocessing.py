@@ -265,7 +265,7 @@ def remove_other_species(df: pd.DataFrame, TaxID: dict) -> pd.DataFrame:
     
     return df[m]
 
-def add_HGNC_symbols(ExTRI2_df: pd.DataFrame, orthologs_path: str, TaxID: dict) -> pd.DataFrame:
+def add_HGNC_symbols(ExTRI2_df: pd.DataFrame, orthologs_path: str) -> pd.DataFrame:
     '''
     use ortholog dicts in orthologs_path (downloaded from HGNC) to get HGNC orthologs for mouse, rat, & human HGNC IDs
     '''
@@ -318,11 +318,13 @@ def add_HGNC_symbols(ExTRI2_df: pd.DataFrame, orthologs_path: str, TaxID: dict) 
         orthologs_map[f'Complex:{dimer}']['human_symbol'] = dimer
 
     def fill_ortholog_column(id, column):
+        '''Helper function to fill ortholog columns'''
         result = []
         for entrez_gene in id.split(";"):
             result.append(orthologs_map[entrez_gene][column]) if entrez_gene in orthologs_map else "-"
         return ";;".join(result)
-    
+
+    # Fill in ortholog columns for TFs and TGs
     for T in ('TF', 'TG'):
         ExTRI2_df[f"{T}_human_entrez_gene"] = ExTRI2_df[f'{T} Id'].apply(lambda id: fill_ortholog_column(id, "human_entrez_gene"))
         ExTRI2_df[f"{T}_hgnc_id"]           = ExTRI2_df[f'{T} Id'].apply(lambda id: fill_ortholog_column(id, "hgnc_id"))
