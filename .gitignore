@@ -6,6 +6,7 @@ pkg
 data/pubtator
 data/tmp
 data/validation
+data/paper_tables
 tmp
 results
 wandb

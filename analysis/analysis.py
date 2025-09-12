@@ -15,7 +15,6 @@ def load_config() -> dict:
     CLASSIFIERS_P   = '../classifiers_training/data/'
     TEMP_P          = DATA_P + 'tmp/'
 
-
     # Results
     config['raw_ExTRI2_p']          = RESULTS_P + 'ExTRI2.tsv'
     config['final_ExTRI2_p']        = RESULTS_P + 'ExTRI2_final_resource.tsv'
@@ -30,6 +29,13 @@ def load_config() -> dict:
 
     # Classifiers
     config['models_p'] = '../classifiers_training/saved_models/'
+
+    # Tables included in the paper
+    config['paper_tables_p'] = DATA_P + 'paper_tables/'
+    config['all_considered_TFs_p'] = config['paper_tables_p'] + 'all_considered_TFs.tsv'
+    config['TFs_in_ExTRI2_p'] = config['paper_tables_p'] + 'TFs_in_ExTRI2.tsv'
+    config['paper_ExTRI2_p']        = RESULTS_P + 'ExTRI2_final_resource.tsv'
+    config['paper_validated_p']     = RESULTS_P + 'validated_sentences.tsv'    
 
     return config
 
