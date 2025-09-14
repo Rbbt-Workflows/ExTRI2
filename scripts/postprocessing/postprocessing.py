@@ -133,8 +133,8 @@ def save_Symbol_TaxID_dict(df: pd.DataFrame, output_path: str) -> None:
 
     # Get relevant info
     EntrezID_to_Symbol = {ID : {'Name': annotation["Name"], 'TaxID': annotation['Organism']['TaxID']} for ID, annotation in zip(IDs, annotationsSummary)}
-    EntrezID_to_Symbol[''] = ''
-    EntrezID_to_Symbol['nan'] = ''
+    EntrezID_to_Symbol[""] = {'Name': '', 'TaxID': ''}
+    EntrezID_to_Symbol['nan'] = {'Name': '', 'TaxID': ''}
 
     # Join w/ previously downloaded
     EntrezID_to_Symbol = {**EntrezID_to_Symbol, **past_EntrezID_to_Symbol}
@@ -226,7 +226,7 @@ def remove_duplicates(TRI_df: pd.DataFrame) -> None:
     TRI_df.drop_duplicates(subset=['PMID+Sent+TRI_Id'], keep="first", inplace=True)
     return
 
-def add_symbols_TaxID(df: pd.DataFrame, EntrezIDtoSymbol_path: str) -> None:
+def add_symbols_TaxID(df: pd.DataFrame, EntrezIDtoSymbol_path: str) -> pd.DataFrame:
     ''''''
     with open(EntrezIDtoSymbol_path, 'r') as f:
         EntrezIDtoSymbol = json.load(f)
@@ -421,7 +421,7 @@ def postprocess(ExTRI2_df: pd.DataFrame, TRI_sents: bool, config: dict) -> pd.Da
         remove_duplicates(ExTRI2_df)
 
     # Add HGNC symbols
-    ExTRI2_df = add_HGNC_symbols(ExTRI2_df, config['orthologs_p'], TaxID)
+    ExTRI2_df = add_HGNC_symbols(ExTRI2_df, config['orthologs_p'])
 
     print()
     return ExTRI2_df

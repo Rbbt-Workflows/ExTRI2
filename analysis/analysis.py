@@ -20,11 +20,8 @@ def load_config() -> dict:
     config['final_ExTRI2_p']        = RESULTS_P + 'ExTRI2_final_resource.tsv'
     config['final_validated_p']     = RESULTS_P + 'validated_sentences.tsv'
 
-    # TF lists
-    config['dbTFs_p']       = DATA_P + 'postprocessing/dbTF_entrez_code.list'
-    config['coTFs_p']       = DATA_P + 'postprocessing/coTF_entrez_code.list'
-    config['ll_coTFs_p']    = DATA_P + 'postprocessing/ll_coTF_entrez_code.list'
-    config['TFs_p']         = DATA_P + 'tf_entrez_code.list'
+    # Gene IDs
+    config['all_TFs_p']         = 'tables/all_TFs.tsv'
     config['all_human_TGs_p'] = DATA_P + 'external/all_human_genes.tsv'
 
     # Classifiers
@@ -32,10 +29,10 @@ def load_config() -> dict:
 
     # Tables included in the paper
     config['paper_tables_p'] = DATA_P + 'paper_tables/'
-    config['all_considered_TFs_p'] = config['paper_tables_p'] + 'all_considered_TFs.tsv'
-    config['TFs_in_ExTRI2_p'] = config['paper_tables_p'] + 'TFs_in_ExTRI2.tsv'
-    config['paper_ExTRI2_p']        = RESULTS_P + 'ExTRI2_final_resource.tsv'
-    config['paper_validated_p']     = RESULTS_P + 'validated_sentences.tsv'    
+    config['all_considered_TFs_p']  = config['paper_tables_p'] + 'all_considered_TFs.tsv'
+    config['TFs_in_ExTRI2_p']       = config['paper_tables_p'] + 'TFs_in_ExTRI2.tsv'
+    config['paper_ExTRI2_p']        = config['paper_tables_p'] + 'ExTRI2_final_resource.tsv'
+    config['paper_validated_p']     = config['paper_tables_p'] + 'validated_sentences.tsv'
 
     return config
 

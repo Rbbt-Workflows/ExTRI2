@@ -414,7 +414,7 @@ def discard(ExTRI2_df: pd.DataFrame, discarded_sents_path: str) -> pd.DataFrame:
 
     # Join & save discarded sentences
     if discarded_sents_path is not None:
-        pd.concat(discarded_sents).to_csv(discarded_sents_path, sep='\t')
+        pd.concat(discarded_sents).drop(columns=['TF_type']).to_csv(discarded_sents_path, sep='\t')
 
     return ExTRI2_df
 

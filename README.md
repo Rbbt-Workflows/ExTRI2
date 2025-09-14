@@ -38,7 +38,7 @@ The final ExTRI2 dataset required training the classifiers and improving the tra
 
 ## Preprocessing
 Obtaining the files and models required to run the main ExTRI2 workflow: 
-1. `data/tf_entrez_code.list` a list of all dbTFs, coTFs & GTFs. Obtained through running `scripts/preprocessing/get_NCBI_TF_IDs.ipynb`.
+1. `data/tf_entrez_code.list` a list of all dbTFs & coTFs. Obtained through running `scripts/preprocessing/get_NCBI_TF_IDs.ipynb`.
 2. `data/pubtator/` with all PubMed abstracts containing TFs from the above list, in Pubtator format. To obtain, run:
 
 ```
