@@ -6,6 +6,7 @@ import os
 import json
 from Bio import Entrez
 import time
+import difflib
 
 from scripts.postprocessing.renormalisations import renormalize, discard, fix_NFKB_AP1
 
@@ -51,6 +52,7 @@ def load_config() -> dict:
     config['postprocess_tables_folder']  = POSTPROCESS_TABLES_P
     config['discarded_sents_p']          = POSTPROCESS_TABLES_P + 'discarded_sents.tsv'
     config['renormalized_sents_p']       = POSTPROCESS_TABLES_P + 'renormalized_sents.tsv'
+    config['orthologs_final_p']          = POSTPROCESS_TABLES_P + 'orthologs_final.tsv'   
     
     config['NFKB_AP1_discarded_sents_p'] = POSTPROCESS_TABLES_P + 'NFKB_AP1_discarded_sents.tsv'
     config['AP1_NFKB_breakdown_p']       = POSTPROCESS_TABLES_P + 'AP1_NFKB_breakdown.tsv'
@@ -265,17 +267,69 @@ def remove_other_species(df: pd.DataFrame, TaxID: dict) -> pd.DataFrame:
     
     return df[m]
 
-def add_HGNC_symbols(ExTRI2_df: pd.DataFrame, orthologs_path: str) -> pd.DataFrame:
+def add_HGNC_symbols(ExTRI2_df: pd.DataFrame, orthologs_path: str) -> tuple[pd.DataFrame, pd.DataFrame]:
     '''
     use ortholog dicts in orthologs_path (downloaded from HGNC) to get HGNC orthologs for mouse, rat, & human HGNC IDs
     '''
 
+    ## HELPER FUNCTIONS
+    def get_unique_HGNC_symbol_index(row):
+        '''
+        Helper function to get a unique HGNC symbol for each Entrez ID, when there are multiple options.
+        1) Return exact lowercase match, if any
+        2) Closest string match (case-insensitive)
+        3) If no match, return NaN
+        '''
+
+        # If there's only one symbol, return index 0
+        if ';' not in row['human_symbol']:
+            return 0
+        
+        # Get all candidates
+        candidates = row["human_symbol"].split(";")
+
+        # 1) Return exact lowercase match, if any
+        for i, c in enumerate(candidates):
+            if c.lower() == row['symbol'].lower():
+                return i
+
+        # 2) Closest string match (case-insensitive)
+        matches = difflib.get_close_matches(row['symbol'].upper(), [c.upper() for c in candidates], n=1, cutoff=0.0)
+        if matches:
+            # return the original candidate (not the uppercased one)
+            for i, c in enumerate(candidates):
+                if c.upper() == matches[0]:
+                    return i
+
+        # 3) No matches found - raise error
+        raise ValueError(f"No match found for {row['symbol']}")
+    
+    def assign_unique_fields(row):
+        '''Helper function to assign unique fields based on index'''
+        idx = get_unique_HGNC_symbol_index(row)
+
+        return pd.Series({
+            "unique_human_symbol": row["human_symbol"].split(";")[idx],
+            "unique_hgnc_id": row["hgnc_id"].split(";")[idx],
+            "unique_human_entrez_gene": row["human_entrez_gene"].split(";")[idx],
+        })
+
+    def fill_ortholog_column(id, column):
+        '''Helper function to fill ortholog columns'''
+        result = []
+        for entrez_gene in id.split(";"):
+            result.append(orthologs_map[entrez_gene][column]) if entrez_gene in orthologs_map else "-"
+        return ";".join(result)
+
+    # Create empty df to store orthologs
     orthologs = pd.DataFrame()
 
     # Get mouse & rat orthologs
     for rodent in ['mouse', 'rat']:
+        # Load as string
         hgnc_df = load_df(orthologs_path + f"human_{rodent}_hcop_fifteen_column.txt")
         hgnc_df = hgnc_df.rename(columns={f"{rodent}_entrez_gene": "entrez_gene", f"{rodent}_symbol": "symbol"})
+        hgnc_df['TaxID'] = '10090' if rodent == 'mouse' else '10116'
         orthologs = pd.concat([orthologs, hgnc_df])
 
     # Get human HNGC symbols
@@ -283,6 +337,7 @@ def add_HGNC_symbols(ExTRI2_df: pd.DataFrame, orthologs_path: str) -> pd.DataFra
     h_hgnc_df = h_hgnc_df.rename(columns={"HGNC ID": "hgnc_id", "NCBI Gene ID": "entrez_gene", "Approved symbol": "symbol"})
     h_hgnc_df['human_entrez_gene'] = h_hgnc_df['entrez_gene']
     h_hgnc_df['human_symbol'] = h_hgnc_df['symbol']
+    h_hgnc_df['TaxID'] = '9606'
     orthologs = pd.concat([orthologs, h_hgnc_df])
 
     # Keep only IDs present in the ExTRI2_df
@@ -291,46 +346,61 @@ def add_HGNC_symbols(ExTRI2_df: pd.DataFrame, orthologs_path: str) -> pd.DataFra
     TF_TG_ids = TF_ids | TG_ids
     orthologs = orthologs[orthologs['entrez_gene'].isin(TF_TG_ids)]
 
-    # Remove all rows that don't have a human entrez ID or hgnc ID
-    m = (orthologs['human_entrez_gene'] != '-') | (orthologs['hgnc_id'] != '-')
+    # Remove all rows that don't have a symbol, human entrez ID, or hgnc ID
+    m = (orthologs['symbol'] != '-') & (orthologs['human_entrez_gene'] != '-') & (orthologs['hgnc_id'] != '-')
     orthologs = orthologs[m]
+
+    # === Resolve cases where entrez_gene has a 1-to-many mapping with symbol. Can be fixed by eliminating all "LOCXXXX" & "GmXXXX" ones. ===
+    # Get entrez IDs with multiple symbols
+    entrezIDs_with_multiple_symbols = (
+        orthologs[['entrez_gene', 'symbol']]
+        .drop_duplicates()
+        .groupby('entrez_gene')
+        .filter(lambda g: len(g) > 1)['entrez_gene']
+        .unique()
+    )
+    # Discard all rows with 'LOCXXXX' or 'GmXXXX' symbols for these entrez IDs (& assert this solves all cases)
+    m_to_discard = orthologs['entrez_gene'].isin(entrezIDs_with_multiple_symbols) & (orthologs['symbol'].str.contains(r'^(?:LOC|Gm\d+)', regex=True))
+    print(f"Discarding {m_to_discard.sum()} rows with 'LOCXXXX' or 'GmXXXX' symbols: {', '.join(orthologs[m_to_discard]['symbol'].unique())}\n")
+    orthologs = orthologs[~m_to_discard]
+    assert (orthologs[['entrez_gene', 'symbol']].drop_duplicates()['entrez_gene'].duplicated().sum() == 0), "There are still entrez IDs with multiple symbols after discarding 'LOCXXXX' and 'GmXXXX' ones"
+
 
     # Join with ';' when an EntrezID has more than 1 human ortholog
     agg_funcs = {
         "symbol": lambda x: ';'.join(x.unique()),
-        "human_entrez_gene": lambda x: ';'.join(x.unique()),
-        "hgnc_id": lambda x: ';'.join(x.unique()),
-        "human_symbol": lambda x: ';'.join(x.unique())
+        "TaxID": lambda x: ';'.join(x.unique()),
+        "human_entrez_gene": lambda x: ';'.join(x),
+        "hgnc_id": lambda x: ';'.join(x),
+        "human_symbol": lambda x: ';'.join(x),
     }
     orthologs = orthologs.groupby(['entrez_gene']).agg(agg_funcs).reset_index()
 
-    # Show how many we get
-    print(f"We get ortholog info for {len(orthologs)}/{len(TF_TG_ids)} Gene IDs\n")
-
-    # Fill in ortholog columns
-    orthologs_map = orthologs.set_index('entrez_gene').to_dict(orient='index')
-
     # Add NFKB & AP1 orthologs
     for dimer in ['NFKB', 'AP1']:
-        orthologs_map[f'Complex:{dimer}'] = {}
-        orthologs_map[f'Complex:{dimer}']['human_entrez_gene'] = f'Complex:{dimer}'
-        orthologs_map[f'Complex:{dimer}']['hgnc_id'] = f'Complex:{dimer}'
-        orthologs_map[f'Complex:{dimer}']['human_symbol'] = dimer
+        orthologs = pd.concat([orthologs, pd.DataFrame([{
+            'entrez_gene': f'Complex:{dimer}',
+            'symbol': dimer,
+            'TaxID': '9606',
+            'human_entrez_gene': f'Complex:{dimer}',
+            'hgnc_id': f'Complex:{dimer}',
+            'human_symbol': dimer,
+        }])], ignore_index=True)
 
-    def fill_ortholog_column(id, column):
-        '''Helper function to fill ortholog columns'''
-        result = []
-        for entrez_gene in id.split(";"):
-            result.append(orthologs_map[entrez_gene][column]) if entrez_gene in orthologs_map else "-"
-        return ";;".join(result)
+    # Add columns with 1-to-1 mapping (unique_human_symbol, unique_hgnc_id, unique_human_entrez_gene), by using either exact match or closest match of symbol wrt human_symbol
+    orthologs = orthologs.join(orthologs.apply(assign_unique_fields, axis=1))
 
-    # Fill in ortholog columns for TFs and TGs
+    # Show how many orthologs we get
+    print(f"We get ortholog info for {len(orthologs)}/{len(TF_TG_ids)} Gene IDs\n")
+
+    # Fill in ortholog columns for TFs and TGs using the "unique" fields for a 1-to-1 mapping
+    orthologs_map = orthologs.set_index('entrez_gene').to_dict(orient='index')
     for T in ('TF', 'TG'):
-        ExTRI2_df[f"{T}_human_entrez_gene"] = ExTRI2_df[f'{T} Id'].apply(lambda id: fill_ortholog_column(id, "human_entrez_gene"))
-        ExTRI2_df[f"{T}_hgnc_id"]           = ExTRI2_df[f'{T} Id'].apply(lambda id: fill_ortholog_column(id, "hgnc_id"))
-        ExTRI2_df[f"{T}_human_symbol"]      = ExTRI2_df[f'{T} Id'].apply(lambda id: fill_ortholog_column(id, "human_symbol"))
+        ExTRI2_df[f"{T}_human_entrez_gene"] = ExTRI2_df[f'{T} Id'].apply(lambda id: fill_ortholog_column(id, "unique_human_entrez_gene"))
+        ExTRI2_df[f"{T}_hgnc_id"]           = ExTRI2_df[f'{T} Id'].apply(lambda id: fill_ortholog_column(id, "unique_hgnc_id"))
+        ExTRI2_df[f"{T}_human_symbol"]      = ExTRI2_df[f'{T} Id'].apply(lambda id: fill_ortholog_column(id, "unique_human_symbol"))
 
-    return ExTRI2_df
+    return ExTRI2_df, orthologs
 
 def add_TF_type(ExTRI2_df: pd.DataFrame, config: dict) -> None:
     '''Assign a TF type to each sentence based on the IDs in the TF_path. If not found, write "-"'''
@@ -378,7 +448,7 @@ def drop_GTFs(ExTRI2_df: pd.DataFrame) -> pd.DataFrame:
 def save_df(df, output_p):
     df.to_csv(output_p, index=False, sep='\t')
 
-def postprocess(ExTRI2_df: pd.DataFrame, TRI_sents: bool, config: dict) -> pd.DataFrame:
+def postprocess(ExTRI2_df: pd.DataFrame, TRI_sents: bool, config: dict) -> tuple[pd.DataFrame, pd.DataFrame]:
     '''
     Add metadata, filter out sentences and renormalize entities with common mistakes
 
@@ -414,17 +484,17 @@ def postprocess(ExTRI2_df: pd.DataFrame, TRI_sents: bool, config: dict) -> pd.Da
         ExTRI2_df = discard(ExTRI2_df, discarded_sents_path=config['discarded_sents_p'])
     else:
         renormalize(ExTRI2_df, renormalized_sents_path = None)
-        ExTRI2_df = discard(ExTRI2_df, discarded_sents_path=None)
+        ExTRI2_df = discard(ExTRI2_df, discarded_sents_path = None)
 
     # Remove duplicates (if formed after renormalization)
     if TRI_sents:
         remove_duplicates(ExTRI2_df)
 
     # Add HGNC symbols
-    ExTRI2_df = add_HGNC_symbols(ExTRI2_df, config['orthologs_p'])
+    ExTRI2_df, orthologs_df = add_HGNC_symbols(ExTRI2_df, config['orthologs_p'])
 
     print()
-    return ExTRI2_df
+    return ExTRI2_df, orthologs_df
 
 
 def main():
@@ -440,12 +510,13 @@ def main():
     not_TRI_sample_df = load_preprocess_df(config['raw_nonTRI_sample_p'])
 
     # Postprocess
-    TRI_df            = postprocess(TRI_df,            TRI_sents=True,  config=config)
-    not_TRI_sample_df = postprocess(not_TRI_sample_df, TRI_sents=False, config=config)
+    TRI_df, orthologs_df = postprocess(TRI_df,            TRI_sents=True,  config=config)
+    not_TRI_sample_df, _ = postprocess(not_TRI_sample_df, TRI_sents=False, config=config)
 
     # Save
     save_df(TRI_df, config['final_ExTRI2_p'])
     save_df(not_TRI_sample_df, config['nonTRI_sample_p'])
+    orthologs_df.to_csv(config['orthologs_final_p'], sep='\t', index=False)
 
 if __name__ == "__main__":
     main()

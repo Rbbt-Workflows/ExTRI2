@@ -193,7 +193,7 @@ def add_renormalisation_tag(ExTRI2_df, m, tag):
     ExTRI2_df.loc[m, 'renormalisation'] + f';{tag}')
     return 
 
-def renormalize(ExTRI2_df: pd.DataFrame, renormalized_sents_path: str) -> None:
+def renormalize(ExTRI2_df: pd.DataFrame, renormalized_sents_path: str|None) -> None:
     '''
     Renormalize common errors (excluding NFKB & AP1).
     Save all renormalized sentences in a table
@@ -254,7 +254,7 @@ def renormalize(ExTRI2_df: pd.DataFrame, renormalized_sents_path: str) -> None:
 
     return
 
-def discard(ExTRI2_df: pd.DataFrame, discarded_sents_path: str) -> pd.DataFrame:
+def discard(ExTRI2_df: pd.DataFrame, discarded_sents_path: str|None) -> pd.DataFrame:
     '''
     Discard sentences with common errors (excluding NFKB & AP1).
     Save all discarded sentences in a table
@@ -303,20 +303,6 @@ def discard(ExTRI2_df: pd.DataFrame, discarded_sents_path: str) -> pd.DataFrame:
             ExTRI2_df = ExTRI2_df[~m_NRLP3]
         
         return ExTRI2_df
-
-    def discard_fusion_genes(ExTRI2_df):
-        '''Discard Common fusion genes misnormalized as TGs'''
-        fusion_genes = [('ABL1', 'BCR'), ('FLI1','EWSR1')]
-        pairs = [';'.join(p) for pair in fusion_genes for p in itertools.permutations(pair, 2) ]
-        m_fusion = ExTRI2_df['TG Symbol'].isin(pairs)
-        print(f"{m_fusion.sum()}\t{m_fusion.sum()/num_sents:.2%}\tThe TG is a fusion gene" )
-
-        # Add discarded sentences to list
-        discarded_sents.append(ExTRI2_df[m_fusion].copy())
-        discarded_sents[-1]['Error'] = 'fusion gene'
-
-        return ExTRI2_df[~m_fusion]
-
     def discard_invalid_TF_function(ExTRI2_df):
         '''Discard sentences with mentions invalid of TG function'''
         m_funct = ExTRI2_df['Sentence'].str.contains(r'\[TG] (?:pathway|signall?ing|axis|program)')
@@ -399,7 +385,6 @@ def discard(ExTRI2_df: pd.DataFrame, discarded_sents_path: str) -> pd.DataFrame:
     ExTRI2_df = discard_NAT(ExTRI2_df)
     ExTRI2_df = discard_circRNAs(ExTRI2_df)
     ExTRI2_df = discard_NLRP3_inflammasome(ExTRI2_df)
-    ExTRI2_df = discard_fusion_genes(ExTRI2_df)
     ExTRI2_df = discard_invalid_TF_function(ExTRI2_df)
     ExTRI2_df = discard_MDM2_TP53(ExTRI2_df)
     ExTRI2_df = discard_CD_cells(ExTRI2_df)
