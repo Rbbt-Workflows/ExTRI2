@@ -306,9 +306,6 @@ def discard(ExTRI2_df: pd.DataFrame, discarded_sents_path: str) -> pd.DataFrame:
 
     def discard_fusion_genes(ExTRI2_df):
         '''Discard Common fusion genes misnormalized as TGs'''
-
-        # TODO - This is incomplete. There's way more fusion genes that should be discarded apart from these ones.
-
         fusion_genes = [('ABL1', 'BCR'), ('FLI1','EWSR1')]
         pairs = [';'.join(p) for pair in fusion_genes for p in itertools.permutations(pair, 2) ]
         m_fusion = ExTRI2_df['TG Symbol'].isin(pairs)
