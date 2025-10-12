@@ -36,6 +36,7 @@ def load_config() -> dict:
     # External
     config['TF_types'] = ['dbTF', 'GTF', 'coTF', 'll_coTF']
     config['TF_ids_p'] = DATA_P + "postprocessing/"
+    config['ensembl_folder'] = DATA_P + 'external/ensembl_Release_115_orthologs/'
 
     # Temporary
     TEMP_P = config['temp_p']
@@ -262,11 +263,17 @@ def add_symbols_TaxID(df: pd.DataFrame, EntrezIDtoSymbol_path: str) -> pd.DataFr
 def remove_other_species(df: pd.DataFrame, TaxID: dict) -> pd.DataFrame:
     '''Remove rows where the TaxID is cross-species'''
     TaxIDs = {'9606', '10090', '10116'}
-    m = df['TF TaxID'].apply(lambda x: ";".join(set(x.split(';')))).isin(TaxIDs)
-    m &= df['TG TaxID'].apply(lambda x: ";".join(set(x.split(';')))).isin(TaxIDs)
-    
-    return df[m]
 
+    for T in ('TF', 'TG'):
+        # Keep only 1 copy of each TaxID
+        df.loc[:, f'{T} TaxID'] = df.loc[:, f'{T} TaxID'].apply(lambda x: ';'.join(set(x.split(';'))))
+
+        # Only keep rows with 1 TaxID
+        df = df[df[f'{T} TaxID'].isin(TaxIDs)]
+
+    return df
+
+# TODO - Remove. This is outdated. Ensure HGNC is not mentioned anywhere
 def add_HGNC_symbols(ExTRI2_df: pd.DataFrame, orthologs_path: str) -> tuple[pd.DataFrame, pd.DataFrame]:
     '''
     use ortholog dicts in orthologs_path (downloaded from HGNC) to get HGNC orthologs for mouse, rat, & human HGNC IDs
@@ -402,6 +409,96 @@ def add_HGNC_symbols(ExTRI2_df: pd.DataFrame, orthologs_path: str) -> tuple[pd.D
 
     return ExTRI2_df, orthologs
 
+def add_human_orthologs(ExTRI2_df: pd.DataFrame, ensembl_folder: str, EntrezID_to_Symbol_p: str) -> pd.DataFrame:
+    '''
+    Add human orthologs, using Ensembl Genes 115 release.
+    Returns: 
+        ExTRI2_df with four new columns: TF_human_Id, TG_human_Id, TF_HGNC_ID, TG_HGNC_ID
+    '''
+
+    # Load Ensembl orthologs (Ensembl Genes 115 version)
+    ensembl_orthologs = pd.read_csv(ensembl_folder + 'mart_export_human_orthologs.txt', sep='\t', dtype='str')
+    ensembl_orthologs.rename(columns={'Norway rat - BN/NHsdMcwi gene stable ID': 'Norway rat gene stable ID'}, inplace=True)
+
+    # Only keep relevant rows and columns
+    m = ensembl_orthologs['Norway rat gene stable ID'].isna() & ensembl_orthologs['Mouse gene stable ID'].isna()
+    ensembl_orthologs = ensembl_orthologs[~m][['Gene stable ID', 'Norway rat gene stable ID', 'Mouse gene stable ID']]
+
+    # Load the mappings from Ensembl Gene IDs to NCBI Gene IDs
+    ensembl_human_df = pd.read_csv(ensembl_folder + 'mart_export_homo_sapiens_Ensembl_to_NCBI.txt', sep='\t', dtype='str')
+    ensembl_mouse_df = pd.read_csv(ensembl_folder + 'mart_export_mus_musculus_Ensembl_to_NCBI.txt', sep='\t', dtype='str')
+    ensembl_rat_df = pd.read_csv(ensembl_folder + 'mart_export_rattus_norvegicus_Ensembl_to_NCBI.txt', sep='\t', dtype='str')
+
+    # Build mapping dictionaries from Ensembl ID to NCBI Gene ID
+    ensembl_human_map = dict(zip(ensembl_human_df['Gene stable ID'], ensembl_human_df['NCBI gene (formerly Entrezgene) ID']))
+    ensembl_mouse_map = dict(zip(ensembl_mouse_df['Gene stable ID'], ensembl_mouse_df['NCBI gene (formerly Entrezgene) ID']))
+    ensembl_rat_map   = dict(zip(ensembl_rat_df['Gene stable ID'],   ensembl_rat_df['NCBI gene (formerly Entrezgene) ID']))
+
+    # Add the NCBI Gene ID to the ortholog dataframe
+    ensembl_orthologs['Human NCBI Gene ID'] = ensembl_orthologs['Gene stable ID'].map(ensembl_human_map)
+    ensembl_orthologs['Mouse NCBI Gene ID'] = ensembl_orthologs['Mouse gene stable ID'].map(ensembl_mouse_map)
+    ensembl_orthologs['Rat NCBI Gene ID']   = ensembl_orthologs['Norway rat gene stable ID'].map(ensembl_rat_map)
+
+    # Build mapping from NCBI Gene ID to Human NCBI Gene ID
+    mouse_map = dict(zip(ensembl_orthologs['Mouse NCBI Gene ID'], ensembl_orthologs['Human NCBI Gene ID']))
+    rat_map   = dict(zip(ensembl_orthologs['Rat NCBI Gene ID'],   ensembl_orthologs['Human NCBI Gene ID']))
+    orthologs_map = {k: v for k, v in (mouse_map | rat_map).items() if pd.notna(k) and pd.notna(v)} | {'Complex:NFKB': 'Complex:NFKB', 'Complex:AP1': 'Complex:AP1'}
+
+    # Build mapping from NCBI Gene ID to HGNC ID
+    hgnc_map = dict(zip(ensembl_human_df['NCBI gene (formerly Entrezgene) ID'], ensembl_human_df['HGNC ID']))
+    hgnc_map = {k: v for k, v in hgnc_map.items() if pd.notna(k) and pd.notna(v)} | {'Complex:NFKB': 'Complex:NFKB', 'Complex:AP1': 'Complex:AP1'}
+
+    def map_NCBI_ID_to_human_NCBI_ID(orthologs_map, gene_ids, TaxID):
+        '''Map gene IDs (human, mouse, rat) to human NCBI Gene IDs, using Ensembl 115 release orthologs.'''
+        if TaxID == '9606':
+            return gene_ids
+
+        return ";".join([orthologs_map.get(id, '-') for id in gene_ids.split(';')])
+        
+
+    def map_NCBI_ID_to_HGNC_ID(hgnc_map, gene_ids):
+        '''Map human gene ID to HGNC ID.'''
+        human_ids = []
+        for id in gene_ids.split(';'):
+            human_ids.append(hgnc_map.get(id, '-'))
+        return ";".join(human_ids)
+
+
+    with open(EntrezID_to_Symbol_p, 'r') as f:
+        EntrezIDtoSymbol = json.load(f)
+
+    def map_NCBI_ID_to_Symbol(EntrezIDtoSymbol, gene_ids):
+        '''Map human gene ID to gene symbol.'''
+        human_symbols = [EntrezIDtoSymbol.get(id, {'Name': ''})['Name'] for id in gene_ids.split(';')]
+        return ";".join(human_symbols)
+        print(gene_ids, human_symbols)
+
+    for T in ('TF', 'TG'):
+        # Add Human NCBI ID into the final dataframe
+        ExTRI2_df[f'{T}_human_Id'] = ExTRI2_df.apply(lambda row: map_NCBI_ID_to_human_NCBI_ID(orthologs_map, row[f'{T} Id'], row[f'{T} TaxID']), axis=1)
+
+        # Add HGNC ID into the final dataframe
+        ExTRI2_df[f'{T}_HGNC_ID'] = ExTRI2_df.apply(lambda row: map_NCBI_ID_to_HGNC_ID(hgnc_map, row[f'{T}_human_Id']), axis=1)
+    
+        # Add human symbols
+        ExTRI2_df[f'{T}_human_symbol'] = ExTRI2_df.apply(lambda row: map_NCBI_ID_to_Symbol(EntrezIDtoSymbol, row[f'{T}_human_Id']), axis=1)
+    
+    # LOG
+    # Show how many orthologs / HGNCs are missing
+    m = (ExTRI2_df['TF_human_Id'] == '-') | (ExTRI2_df['TG_human_Id'] == '-')
+    print(f"No orthologs found for           {m.sum() / len(ExTRI2_df):.2%} of the rows ({m.sum()} rows)")
+
+    m = ExTRI2_df['TF_human_Id'].str.contains('-') | ExTRI2_df['TG_human_Id'].str.contains('-')
+    print(f"Some ortholog is not present in  {m.sum() / len(ExTRI2_df):.2%} of the rows ({m.sum()} rows)")
+
+    m = (ExTRI2_df['TF_HGNC_ID'] == '-') | (ExTRI2_df['TG_HGNC_ID'] == '-')
+    print(f"No HGNCs for                     {m.sum() / len(ExTRI2_df):.2%} of the rows ({m.sum()} rows)")
+
+    m = ExTRI2_df['TF_HGNC_ID'].str.contains('-') | ExTRI2_df['TG_HGNC_ID'].str.contains('-')
+    print(f"Some HGNC is not present in      {m.sum() / len(ExTRI2_df):.2%} of the rows ({m.sum()} rows)")
+
+    return ExTRI2_df
+
 def add_TF_type(ExTRI2_df: pd.DataFrame, config: dict) -> None:
     '''Assign a TF type to each sentence based on the IDs in the TF_path. If not found, write "-"'''
 
@@ -448,7 +545,7 @@ def drop_GTFs(ExTRI2_df: pd.DataFrame) -> pd.DataFrame:
 def save_df(df, output_p):
     df.to_csv(output_p, index=False, sep='\t')
 
-def postprocess(ExTRI2_df: pd.DataFrame, TRI_sents: bool, config: dict) -> tuple[pd.DataFrame, pd.DataFrame]:
+def postprocess(ExTRI2_df: pd.DataFrame, TRI_sents: bool, config: dict) -> pd.DataFrame:
     '''
     Add metadata, filter out sentences and renormalize entities with common mistakes
 
@@ -490,11 +587,15 @@ def postprocess(ExTRI2_df: pd.DataFrame, TRI_sents: bool, config: dict) -> tuple
     if TRI_sents:
         remove_duplicates(ExTRI2_df)
 
+    # TODO - Remove this, it's outdated
     # Add HGNC symbols
-    ExTRI2_df, orthologs_df = add_HGNC_symbols(ExTRI2_df, config['orthologs_p'])
+    # ExTRI2_df, orthologs_df = add_HGNC_symbols(ExTRI2_df, config['orthologs_p'])
+
+    # Add human orthologs
+    ExTRI2_df = add_human_orthologs(ExTRI2_df, config['ensembl_folder'], config[f'EntrezID_to_Symbol_{df_type}_p'])
 
     print()
-    return ExTRI2_df, orthologs_df
+    return ExTRI2_df
 
 
 def main():
@@ -510,13 +611,15 @@ def main():
     not_TRI_sample_df = load_preprocess_df(config['raw_nonTRI_sample_p'])
 
     # Postprocess
-    TRI_df, orthologs_df = postprocess(TRI_df,            TRI_sents=True,  config=config)
-    not_TRI_sample_df, _ = postprocess(not_TRI_sample_df, TRI_sents=False, config=config)
+    TRI_df = postprocess(TRI_df,            TRI_sents=True,  config=config)
+    not_TRI_sample_df = postprocess(not_TRI_sample_df, TRI_sents=False, config=config)
 
     # Save
     save_df(TRI_df, config['final_ExTRI2_p'])
     save_df(not_TRI_sample_df, config['nonTRI_sample_p'])
-    orthologs_df.to_csv(config['orthologs_final_p'], sep='\t', index=False)
+    
+    # TODO - Delete this, and this table, once we've accepted the change to ExTRI2
+    # orthologs_df.to_csv(config['orthologs_final_p'], sep='\t', index=False)
 
 if __name__ == "__main__":
     main()
