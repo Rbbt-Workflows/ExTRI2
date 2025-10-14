@@ -7,6 +7,9 @@ import json
 from Bio import Entrez
 import time
 import difflib
+import re
+import requests
+import time
 
 from scripts.postprocessing.renormalisations import renormalize, discard, fix_NFKB_AP1
 
@@ -47,7 +50,6 @@ def load_config() -> dict:
     config['EntrezID_to_Symbol_TRI_p']    = TEMP_P + 'EntrezID_to_Symbol_TaxID.json'
     config['EntrezID_to_Symbol_nonTRI_p'] = TEMP_P + 'EntrezID_to_Symbol_TaxID_nonvalid.json'
 
-
     # Tables
     POSTPROCESS_TABLES_P = DATA_P + 'postprocessing/tables/'
     config['postprocess_tables_folder']  = POSTPROCESS_TABLES_P
@@ -78,11 +80,11 @@ def retrieve_Entrez_annotations(id_list: list):
 
     request = Entrez.epost("gene", id=",".join(id_list))
     result = Entrez.read(request)
-    webEnv = result["WebEnv"]
-    queryKey = result["QueryKey"]
+    webEnv = result["WebEnv"] # type: ignore
+    queryKey = result["QueryKey"] # type: ignore
     data = Entrez.esummary(db="gene", webenv=webEnv, query_key=queryKey)
     annotations = Entrez.read(data)
-    annotationsSummary = annotations['DocumentSummarySet']['DocumentSummary']
+    annotationsSummary = annotations['DocumentSummarySet']['DocumentSummary'] # type: ignore
 
     assert len(id_list) == len(annotationsSummary), f"id_list and annotationsSummary are of different length: {len(id_list)} != {len(annotationsSummary)}"
 
@@ -273,6 +275,7 @@ def remove_other_species(df: pd.DataFrame, TaxID: dict) -> pd.DataFrame:
 
     return df
 
+# ---------------
 # TODO - Remove. This is outdated. Ensure HGNC is not mentioned anywhere
 def add_HGNC_symbols(ExTRI2_df: pd.DataFrame, orthologs_path: str) -> tuple[pd.DataFrame, pd.DataFrame]:
     '''
@@ -498,6 +501,314 @@ def add_human_orthologs(ExTRI2_df: pd.DataFrame, ensembl_folder: str, EntrezID_t
     print(f"Some HGNC is not present in      {m.sum() / len(ExTRI2_df):.2%} of the rows ({m.sum()} rows)")
 
     return ExTRI2_df
+# ----------------
+
+# --- Orthologs functions
+
+def fetch_entrez_symbols(gene_ids, email="you@example.com", batch=200) -> dict:
+    """
+    Query NCBI's Entrez Gene (E-utilities) API to get gene symbols for a list of Entrez IDs.
+
+    Returns:
+        dict: {gene_id (str): gene_symbol (str)} for successfully retrieved genes.
+    """
+    geneID_to_symbol = {}
+    gene_ids = list(map(str, gene_ids))  # ensure strings for URL joining
+
+    for i in range(0, len(gene_ids), batch):
+        # Prepare a batch of IDs
+        ids = ",".join(gene_ids[i:i + batch])
+
+        # Call NCBI's esummary endpoint
+        r = requests.get(
+            "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esummary.fcgi",
+            params={"db": "gene", "id": ids, "retmode": "json", "email": email}
+        )
+        r.raise_for_status()  # raise an exception if HTTP request failed
+
+        # Parse JSON response
+        docs = r.json().get("result", {})
+
+        # Extract gene symbols
+        for k, v in docs.items():
+            if k == "uids":  # skip the metadata field
+                continue
+            symbol = v.get("name")
+            if symbol:       # only add if symbol exists
+                geneID_to_symbol[k] = symbol
+
+        # Respect NCBI rate limit (~3 requests per second)
+        time.sleep(0.34)
+
+    return geneID_to_symbol
+
+def create_rodent_NCBI_to_human_NCBI_mapping(ensembl_folder: str) -> tuple[dict, dict]:
+    '''
+    Create a mapping from rodent NCBI IDs to human NCBI IDs, using the Ensembl 115 release data.
+
+    The mapping will be created following this chain:
+    rodent NCBI ID > rodent Ensembl ID > human Ensembl ID > human NCBI ID
+
+    Return:
+    - rodentID_to_humanID: dict, mapping from rodent NCBI Gene ID to a list of human NCBI Gene IDs
+    '''
+
+    # Load the mappings from Ensembl Gene IDs to NCBI Gene IDs
+    ensembl_human_df = pd.read_csv(ensembl_folder + 'mart_export_homo_sapiens_Ensembl_to_NCBI.txt', sep='\t', dtype='str')
+    ensembl_mouse_df = pd.read_csv(ensembl_folder + 'mart_export_mus_musculus_Ensembl_to_NCBI.txt', sep='\t', dtype='str')
+    ensembl_rat_df = pd.read_csv(ensembl_folder + 'mart_export_rattus_norvegicus_Ensembl_to_NCBI.txt', sep='\t', dtype='str')
+
+    ensembl_orthologs_df = pd.read_csv(ensembl_folder + 'mart_export_human_orthologs.txt', sep='\t', dtype='str')
+    ensembl_orthologs_df.rename(columns={'Norway rat - BN/NHsdMcwi gene stable ID': 'Norway rat gene stable ID'}, inplace=True)
+
+    # Create rodent ID to TaxID mapping
+    rodentID_to_taxID = {}
+    for NCBI_ID in ensembl_mouse_df['NCBI gene (formerly Entrezgene) ID'].unique():
+        rodentID_to_taxID[NCBI_ID] = 10090
+    for NCBI_ID in ensembl_rat_df['NCBI gene (formerly Entrezgene) ID'].unique():
+        rodentID_to_taxID[NCBI_ID] = 10116
+
+    # 1) rodent NCBI ID > rodent Ensembl ID
+    ensembl_mouse_df = ensembl_mouse_df[ensembl_mouse_df['NCBI gene (formerly Entrezgene) ID'].notna()]
+    ensembl_rat_df = ensembl_rat_df[ensembl_rat_df['NCBI gene (formerly Entrezgene) ID'].notna()]
+    ensembl_rodent_df = pd.concat([ensembl_mouse_df, ensembl_rat_df], ignore_index=True).drop_duplicates()
+    rodent_grouped = (ensembl_rodent_df.groupby('NCBI gene (formerly Entrezgene) ID')['Gene stable ID'].agg(set).reset_index())
+    rodent_geneID_to_ensembl = dict(zip(rodent_grouped['NCBI gene (formerly Entrezgene) ID'], rodent_grouped['Gene stable ID']))
+
+    # 2) rodent Ensembl ID > human Ensembl ID
+    mouse_grouped = (ensembl_orthologs_df.groupby('Mouse gene stable ID')['Gene stable ID'].agg(set).reset_index())
+    rat_grouped = (ensembl_orthologs_df.groupby('Norway rat gene stable ID')['Gene stable ID'].agg(set).reset_index())
+
+    rodent_ensembl_to_human_ensembl = {
+        **dict(zip(mouse_grouped['Mouse gene stable ID'], mouse_grouped['Gene stable ID'])), 
+        **dict(zip(rat_grouped['Norway rat gene stable ID'], rat_grouped['Gene stable ID']))
+    }
+
+    # 3) human Ensembl ID > human NCBI ID
+    ensembl_human_df = ensembl_human_df[ensembl_human_df['NCBI gene (formerly Entrezgene) ID'].notna()].drop_duplicates()
+    grouped = (ensembl_human_df.groupby('Gene stable ID')['NCBI gene (formerly Entrezgene) ID'].agg(set).reset_index())
+    human_ensembl_to_geneID = dict(zip(grouped['Gene stable ID'], grouped['NCBI gene (formerly Entrezgene) ID']))
+
+    # 4) rodent NCBI ID > human NCBI ID (where multiple are joined by ;)
+    rodentID_to_humanID = {}
+    for rodent_id, rodent_ensembl_ids in rodent_geneID_to_ensembl.items():
+        human_ids = set()
+        for rodent_ensembl_id in rodent_ensembl_ids:
+            human_ensembl_ids = rodent_ensembl_to_human_ensembl.get(rodent_ensembl_id, [''])
+            for ensembl_id in human_ensembl_ids:
+                human_ids.update(human_ensembl_to_geneID.get(ensembl_id, ['']))
+        human_ids.discard('')  # Remove empty strings if any
+        rodentID_to_humanID[rodent_id] = ";".join(human_ids) if human_ids else 'None'
+
+    return rodentID_to_humanID, rodentID_to_taxID
+
+def create_human_NCBI_to_HGNC_mapping(ensembl_folder: str) -> dict:
+    '''
+    Create a mapping from human NCBI Gene IDs to HGNC IDs, using the Ensembl 115 release data.
+    If multiple HGNC IDs are found (only in 1% of cases), the NCBI ID is discarded.
+
+    Return:
+    - humanID_to_HGNC: dict, mapping from human NCBI Gene ID to a list of HGNC IDs
+    '''
+
+    # Load the mappings from Ensembl Gene IDs to NCBI Gene IDs
+    ensembl_human_df = pd.read_csv(ensembl_folder + 'mart_export_homo_sapiens_Ensembl_to_NCBI.txt', sep='\t', dtype='str')
+
+    # Filter rows with both HGNC and NCBI IDs, and remove duplicates
+    m = ensembl_human_df['HGNC ID'].notna() & ensembl_human_df['NCBI gene (formerly Entrezgene) ID'].notna()
+    ensembl_human_df = ensembl_human_df[m][['HGNC ID', 'NCBI gene (formerly Entrezgene) ID']].drop_duplicates()
+
+    # Drop rows with NCBI IDs that have multiple HGNC IDs
+    m = ensembl_human_df['NCBI gene (formerly Entrezgene) ID'].duplicated(keep=False)
+    print(f"Discarding from the NCBI_Gene_ID-to_HGNC_ID mapping {ensembl_human_df['NCBI gene (formerly Entrezgene) ID'].duplicated().sum()} Human Gene IDs out of {ensembl_human_df['NCBI gene (formerly Entrezgene) ID'].nunique()} as they map to multiple HGNCs")
+    ensembl_human_df = ensembl_human_df[~m]
+
+    # Create a one-to-one dictionary
+    humanID_to_HGNC = dict(zip(ensembl_human_df['NCBI gene (formerly Entrezgene) ID'], ensembl_human_df['HGNC ID']))
+
+    return humanID_to_HGNC
+
+def create_orthologs_df(ensembl_folder: str, EntrezID_to_Symbol_TRI_p: str, ExTRI2_df: pd.DataFrame) -> pd.DataFrame:
+    '''
+    Create a dataframe with the orthologs mapping from rodent NCBI Gene ID to human NCBI Gene ID, HGNC ID, and human gene symbol.
+
+    The mapping will be created following this chain:
+    rodent NCBI ID > rodent Ensembl ID > human Ensembl ID > human NCBI ID
+
+    Return:
+    - orthologs_df: pd.DataFrame, with columns: Gene_ID, human_gene_ID, HGNC_ID, Gene Symbol, human_gene_symbol
+     - As well as unique mappings using same name, or first family name rule
+    '''
+
+    def map_NCBI_ID_to_Symbol(EntrezIDtoSymbol, gene_ids):
+        '''Map human gene ID to gene symbol.'''
+        gene_symbols = [EntrezIDtoSymbol.get(id, {'Name': 'None'})['Name'] for id in gene_ids.split(';')]
+        return ";".join(gene_symbols)
+
+    def get_unique_human_symbol_index(row):
+        '''
+        Get the index of the unique human gene symbol following these rules:
+        1) Return exact uppercase match, if any
+        2) First gene family member (e.g. ACSM2A for ACSM2; if multiple, take the one with the smallest numeric suffix)
+        3) If no match, return None
+        '''
+        # Get rodent symbol & human symbols
+        rodent_symbol = row['gene_symbol'].upper()
+        human_symbols = row['human_gene_symbol'].upper().split(";")
+
+        # If there's only one symbol, return index 0
+        if len(human_symbols) == 1:
+            return 0
+
+        # 1) Exact match (case-insensitive)
+        for i, c in enumerate(human_symbols):
+            if c == rodent_symbol:
+                return i
+
+        # 2) Apply first gene family member rule:
+        # Split the symbol into stem, number, letter, number2
+        m = re.match(r'^([A-Z]+)(\d+)?([A-Z]?)(\d+)?$', rodent_symbol)
+        stem = m.group(1) if m else rodent_symbol
+        num = m.group(2) if (m and m.group(2)) else None
+        letter = m.group(3) if (m and m.group(3)) else None
+        num2 = m.group(4) if (m and m.group(4)) else None
+
+        # Get human symbols that start with the same stem
+        candidates = [(i, hs) for i, hs in enumerate(human_symbols) if hs.startswith(stem)]
+        if not candidates:
+            return None
+        
+        # Prefer candidates that match the stem
+        exact = [i for i, hs in candidates if hs == stem]
+        if exact:
+            return exact[0]
+            
+        # If there is a number, prefer same numeric family (e.g. ADH1A over ADH2A)
+        if num:
+            same_family = [(i, hs) for i, hs in candidates if hs.startswith(stem + num)]
+
+            if same_family:
+                # Prefer exact stem+num (if present), else smallest suffix
+                exact = [i for i, hs in same_family if hs == stem + num]
+                if exact:
+                    return exact[0]
+                
+                same_family.sort(key=lambda x: x[1])
+                return same_family[0][0]
+            
+        # Otherwise, just pick smallest lexicographic suffix (first family member)
+        candidates.sort(key=lambda x: x[1])
+        return candidates[0][0]
+
+    def assign_unique_human_fields(row):
+        '''Helper function to assign unique fields based on index'''
+        idx = get_unique_human_symbol_index(row)
+
+        if idx is None:
+            return pd.Series({
+                'unique_human_gene_ID': 'None',
+                'unique_human_gene_symbol':  'None',
+            })
+
+        return pd.Series({
+            'unique_human_gene_ID': row['human_gene_ID'].split(';')[idx],
+            'unique_human_gene_symbol': row['human_gene_symbol'].split(';')[idx],
+        })
+
+    # Create mappings
+    rodentID_to_humanIDs, rodentID_to_taxID = create_rodent_NCBI_to_human_NCBI_mapping(ensembl_folder)
+    humanID_to_HGNC = create_human_NCBI_to_HGNC_mapping(ensembl_folder)
+
+    # Load EntrezID to Symbol mapping
+    with open(EntrezID_to_Symbol_TRI_p, 'r') as f:
+        EntrezIDtoSymbol = json.load(f)
+
+    # Create a dataframe with the orthologs mapping
+    orthologs_df = pd.DataFrame.from_dict(rodentID_to_humanIDs, orient='index').reset_index()
+    orthologs_df.columns = ['Gene_ID', 'human_gene_ID']
+
+    # Only keep rows that are present in the ExTRI2_df
+    geneIDs_in_ExTRI2 = {id for col in ['TF Id', 'TG Id'] for ids in ExTRI2_df[col].unique() for id in ids.split(';')}
+    orthologs_df = orthologs_df[orthologs_df['Gene_ID'].isin(geneIDs_in_ExTRI2)].reset_index(drop=True)
+
+    # EntrezIDtoSymbol only contains IDs in ExTRI. Retrieve missing ones from Entrez
+    all_humanIDs = {id  for ids in orthologs_df['human_gene_ID'].unique() for id in ids.split(';')}
+    geneIDs_w_missing_symbol = [id for id in all_humanIDs if (id not in EntrezIDtoSymbol) and (id not in ['-', ''])]
+    print(f"Fetching {len(geneIDs_w_missing_symbol)} missing human gene symbols from Entrez...")
+    if geneIDs_w_missing_symbol:
+        # Fetch missing symbols from Entrez
+        missing_symbols = fetch_entrez_symbols(geneIDs_w_missing_symbol)
+        EntrezIDtoSymbol.update({id: {'Name': symbol, 'TaxID': '9606'} for id, symbol in missing_symbols.items()})
+
+    # Add TaxID
+    orthologs_df['TaxID'] = orthologs_df['Gene_ID'].apply(lambda id: rodentID_to_taxID[id])
+
+    # Add both rodent and human gene symbol
+    orthologs_df['gene_symbol'] = orthologs_df['Gene_ID'].apply(lambda id: map_NCBI_ID_to_Symbol(EntrezIDtoSymbol, id))
+    orthologs_df['human_gene_symbol'] = orthologs_df['human_gene_ID'].apply(lambda id: map_NCBI_ID_to_Symbol(EntrezIDtoSymbol, id))
+
+    # Add unique human gene ID and symbol
+    orthologs_df = orthologs_df.join(orthologs_df.apply(assign_unique_human_fields, axis=1))
+
+    # Add the human IDs to the orthologs df for completeness
+    human_df = pd.DataFrame(list(humanID_to_HGNC.items()), columns=['Gene_ID', 'HGNC_ID'])
+    human_df = human_df[human_df['Gene_ID'].isin(geneIDs_in_ExTRI2)].reset_index(drop=True) # Drop rows not in ExTRI2
+    human_df['gene_symbol'] = human_df['Gene_ID'].apply(lambda id: map_NCBI_ID_to_Symbol(EntrezIDtoSymbol, id))
+    human_df['TaxID'] = '9606'
+
+    # For consistency with orthologs_df columns:
+    human_df['human_gene_ID'] = human_df['Gene_ID']
+    human_df['human_gene_symbol'] = human_df['gene_symbol']
+    human_df['unique_human_gene_ID'] = human_df['Gene_ID']
+    human_df['unique_human_gene_symbol'] = human_df['gene_symbol']
+
+    # Join with orthologs_df
+    orthologs_df = pd.concat([orthologs_df, human_df], ignore_index=True)
+
+    # Add HGNC symbol
+    orthologs_df['HGNC_ID'] = orthologs_df['human_gene_ID'].apply(lambda human_gene_ID: ';'.join(humanID_to_HGNC.get(id, 'None') for id in human_gene_ID.split(';')))
+    orthologs_df['unique_HGNC_ID'] = orthologs_df['unique_human_gene_ID'].apply(lambda human_gene_ID: humanID_to_HGNC.get(human_gene_ID, 'None'))
+
+    # Add API & NFKB complexes:
+    orthologs_df = pd.concat([orthologs_df, pd.DataFrame([
+        {'Gene_ID': 'Complex:NFKB', 'human_gene_ID': 'Complex:NFKB', 'gene_symbol': 'Complex:NFKB', 'human_gene_symbol': 'Complex:NFKB', 'unique_human_gene_ID': 'Complex:NFKB', 'unique_human_gene_symbol': 'Complex:NFKB', 'HGNC_ID': 'Complex:NFKB', 'unique_HGNC_ID': 'Complex:NFKB'},
+        {'Gene_ID': 'Complex:AP1',  'human_gene_ID': 'Complex:AP1',  'gene_symbol': 'Complex:AP1',  'human_gene_symbol': 'Complex:AP1',  'unique_human_gene_ID': 'Complex:AP1',  'unique_human_gene_symbol': 'Complex:AP1',  'HGNC_ID': 'Complex:AP1',  'unique_HGNC_ID': 'Complex:AP1'},
+    ])], ignore_index=True)
+
+    return orthologs_df
+
+def add_ortholog_columns(ExTRI2_df: pd.DataFrame, orthologs_df: pd.DataFrame) -> pd.DataFrame:
+    '''
+    Apply unique orthologs mapping to the ExTRI2 dataframe.
+    '''
+    # Get orthologs_map from the orthologs_df
+    orthologs_map = {
+        row['Gene_ID']: {
+            'human_Id': row['unique_human_gene_ID'],
+            'human_symbol': row['unique_human_gene_symbol'],
+            'HGNC_Id': row['unique_HGNC_ID'],
+            # 'multiple_human_Id': row['human_gene_ID'],
+            # 'multiple_human_symbol': row['human_gene_symbol'],
+            # 'multiple_HGNC_Id': row['HGNC_ID']
+        }
+        for _, row in orthologs_df.iterrows()
+    }
+
+    # Apply the map to ExTRI2
+    for T in ['TF', 'TG']:
+        for field in ['human_Id', 'human_symbol', 'HGNC_Id', ]: #'multiple_human_Id', 'multiple_human_symbol', 'multiple_HGNC_Id']:
+            ExTRI2_df[f'{T}_{field}'] = ExTRI2_df[f'{T} Id'].apply(
+                lambda ids: ';'.join(orthologs_map.get(id, {}).get(field, 'None') for id in ids.split(';') if id.strip())
+            )
+
+    # LOG - Show how many orthologs / HGNCs are missing
+    for text, field in [('orthologs', 'human_Id'), ('HGNCs', 'HGNC_Id'), ('human symbols', 'human_symbol')]:
+        m1 = (ExTRI2_df['TF_' + field] == 'None') | (ExTRI2_df['TG_' + field] == 'None')
+        m2 = ExTRI2_df['TF_' + field].str.contains('None') | ExTRI2_df['TG_' + field].str.contains('None')
+        print(f"No {text+' in':<17} {m1.sum()} rows ({m1.mean():.2%}). Some missing in {m2.sum()} rows ({m2.mean():.2%})")
+
+    return ExTRI2_df
+# ----------------
 
 def add_TF_type(ExTRI2_df: pd.DataFrame, config: dict) -> None:
     '''Assign a TF type to each sentence based on the IDs in the TF_path. If not found, write "-"'''
@@ -545,7 +856,7 @@ def drop_GTFs(ExTRI2_df: pd.DataFrame) -> pd.DataFrame:
 def save_df(df, output_p):
     df.to_csv(output_p, index=False, sep='\t')
 
-def postprocess(ExTRI2_df: pd.DataFrame, TRI_sents: bool, config: dict) -> pd.DataFrame:
+def postprocess(ExTRI2_df: pd.DataFrame, TRI_sents: bool, config: dict) -> tuple[pd.DataFrame, pd.DataFrame]:
     '''
     Add metadata, filter out sentences and renormalize entities with common mistakes
 
@@ -587,15 +898,18 @@ def postprocess(ExTRI2_df: pd.DataFrame, TRI_sents: bool, config: dict) -> pd.Da
     if TRI_sents:
         remove_duplicates(ExTRI2_df)
 
-    # TODO - Remove this, it's outdated
+    # TODO - Remove these two, they're outdated
     # Add HGNC symbols
     # ExTRI2_df, orthologs_df = add_HGNC_symbols(ExTRI2_df, config['orthologs_p'])
-
     # Add human orthologs
-    ExTRI2_df = add_human_orthologs(ExTRI2_df, config['ensembl_folder'], config[f'EntrezID_to_Symbol_{df_type}_p'])
+    # ExTRI2_df = add_human_orthologs(ExTRI2_df, config['ensembl_folder'], config[f'EntrezID_to_Symbol_{df_type}_p'])
 
+    # Add orthologs using Ensembl 115 release
+    orthologs_df = create_orthologs_df(config['ensembl_folder'], config[f'EntrezID_to_Symbol_{df_type}_p'], ExTRI2_df)
+    ExTRI2_df = add_ortholog_columns(ExTRI2_df, orthologs_df)
     print()
-    return ExTRI2_df
+
+    return ExTRI2_df, orthologs_df
 
 
 def main():
@@ -611,15 +925,16 @@ def main():
     not_TRI_sample_df = load_preprocess_df(config['raw_nonTRI_sample_p'])
 
     # Postprocess
-    TRI_df = postprocess(TRI_df,            TRI_sents=True,  config=config)
-    not_TRI_sample_df = postprocess(not_TRI_sample_df, TRI_sents=False, config=config)
+    TRI_df, orthologs_df = postprocess(TRI_df,            TRI_sents=True,  config=config)
+    not_TRI_sample_df, _ = postprocess(not_TRI_sample_df, TRI_sents=False, config=config)
 
     # Save
     save_df(TRI_df, config['final_ExTRI2_p'])
     save_df(not_TRI_sample_df, config['nonTRI_sample_p'])
     
-    # TODO - Delete this, and this table, once we've accepted the change to ExTRI2
-    # orthologs_df.to_csv(config['orthologs_final_p'], sep='\t', index=False)
+    # Save orthologs_df for reference
+    # TODO - This must be updated in Drive
+    orthologs_df.to_csv(config['orthologs_final_p'], sep='\t', index=False)
 
 if __name__ == "__main__":
     main()
