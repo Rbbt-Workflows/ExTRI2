@@ -34,12 +34,12 @@ def load_config() -> dict:
 
     # Inputs
     config['raw_results_p'] = RESULTS_P + 'ExTRI2.tsv'
-    config['orthologs_p'] = DATA_P + 'external/human_HGNC_orthologs/'
     
     # External
     config['TF_types'] = ['dbTF', 'GTF', 'coTF', 'll_coTF']
     config['TF_ids_p'] = DATA_P + "postprocessing/"
     config['ensembl_folder'] = DATA_P + 'external/ensembl_Release_115_orthologs/'
+    config['manually_checked_orthologs_p'] = DATA_P + 'postprocessing/manual_orthologs_corrections.json'
 
     # Temporary
     TEMP_P = config['temp_p']
@@ -275,236 +275,7 @@ def remove_other_species(df: pd.DataFrame, TaxID: dict) -> pd.DataFrame:
 
     return df
 
-# ---------------
-# TODO - Remove. This is outdated. Ensure HGNC is not mentioned anywhere
-def add_HGNC_symbols(ExTRI2_df: pd.DataFrame, orthologs_path: str) -> tuple[pd.DataFrame, pd.DataFrame]:
-    '''
-    use ortholog dicts in orthologs_path (downloaded from HGNC) to get HGNC orthologs for mouse, rat, & human HGNC IDs
-    '''
-
-    ## HELPER FUNCTIONS
-    def get_unique_HGNC_symbol_index(row):
-        '''
-        Helper function to get a unique HGNC symbol for each Entrez ID, when there are multiple options.
-        1) Return exact lowercase match, if any
-        2) Closest string match (case-insensitive)
-        3) If no match, return NaN
-        '''
-
-        # If there's only one symbol, return index 0
-        if ';' not in row['human_symbol']:
-            return 0
-        
-        # Get all candidates
-        candidates = row["human_symbol"].split(";")
-
-        # 1) Return exact lowercase match, if any
-        for i, c in enumerate(candidates):
-            if c.lower() == row['symbol'].lower():
-                return i
-
-        # 2) Closest string match (case-insensitive)
-        matches = difflib.get_close_matches(row['symbol'].upper(), [c.upper() for c in candidates], n=1, cutoff=0.0)
-        if matches:
-            # return the original candidate (not the uppercased one)
-            for i, c in enumerate(candidates):
-                if c.upper() == matches[0]:
-                    return i
-
-        # 3) No matches found - raise error
-        raise ValueError(f"No match found for {row['symbol']}")
-    
-    def assign_unique_fields(row):
-        '''Helper function to assign unique fields based on index'''
-        idx = get_unique_HGNC_symbol_index(row)
-
-        return pd.Series({
-            "unique_human_symbol": row["human_symbol"].split(";")[idx],
-            "unique_hgnc_id": row["hgnc_id"].split(";")[idx],
-            "unique_human_entrez_gene": row["human_entrez_gene"].split(";")[idx],
-        })
-
-    def fill_ortholog_column(id, column):
-        '''Helper function to fill ortholog columns'''
-        result = []
-        for entrez_gene in id.split(";"):
-            result.append(orthologs_map[entrez_gene][column]) if entrez_gene in orthologs_map else "-"
-        return ";".join(result)
-
-    # Create empty df to store orthologs
-    orthologs = pd.DataFrame()
-
-    # Get mouse & rat orthologs
-    for rodent in ['mouse', 'rat']:
-        # Load as string
-        hgnc_df = load_df(orthologs_path + f"human_{rodent}_hcop_fifteen_column.txt")
-        hgnc_df = hgnc_df.rename(columns={f"{rodent}_entrez_gene": "entrez_gene", f"{rodent}_symbol": "symbol"})
-        hgnc_df['TaxID'] = '10090' if rodent == 'mouse' else '10116'
-        orthologs = pd.concat([orthologs, hgnc_df])
-
-    # Get human HNGC symbols
-    h_hgnc_df = load_df(orthologs_path + "hgnc_human.tsv")
-    h_hgnc_df = h_hgnc_df.rename(columns={"HGNC ID": "hgnc_id", "NCBI Gene ID": "entrez_gene", "Approved symbol": "symbol"})
-    h_hgnc_df['human_entrez_gene'] = h_hgnc_df['entrez_gene']
-    h_hgnc_df['human_symbol'] = h_hgnc_df['symbol']
-    h_hgnc_df['TaxID'] = '9606'
-    orthologs = pd.concat([orthologs, h_hgnc_df])
-
-    # Keep only IDs present in the ExTRI2_df
-    TF_ids = {j for id in ExTRI2_df['TF Id'].unique() for j in id.split(';')}
-    TG_ids = {j for id in ExTRI2_df['TG Id'].unique() for j in id.split(';')}
-    TF_TG_ids = TF_ids | TG_ids
-    orthologs = orthologs[orthologs['entrez_gene'].isin(TF_TG_ids)]
-
-    # Remove all rows that don't have a symbol, human entrez ID, or hgnc ID
-    m = (orthologs['symbol'] != '-') & (orthologs['human_entrez_gene'] != '-') & (orthologs['hgnc_id'] != '-')
-    orthologs = orthologs[m]
-
-    # === Resolve cases where entrez_gene has a 1-to-many mapping with symbol. Can be fixed by eliminating all "LOCXXXX" & "GmXXXX" ones. ===
-    # Get entrez IDs with multiple symbols
-    entrezIDs_with_multiple_symbols = (
-        orthologs[['entrez_gene', 'symbol']]
-        .drop_duplicates()
-        .groupby('entrez_gene')
-        .filter(lambda g: len(g) > 1)['entrez_gene']
-        .unique()
-    )
-    # Discard all rows with 'LOCXXXX' or 'GmXXXX' symbols for these entrez IDs (& assert this solves all cases)
-    m_to_discard = orthologs['entrez_gene'].isin(entrezIDs_with_multiple_symbols) & (orthologs['symbol'].str.contains(r'^(?:LOC|Gm\d+)', regex=True))
-    print(f"Discarding {m_to_discard.sum()} rows with 'LOCXXXX' or 'GmXXXX' symbols: {', '.join(orthologs[m_to_discard]['symbol'].unique())}\n")
-    orthologs = orthologs[~m_to_discard]
-    assert (orthologs[['entrez_gene', 'symbol']].drop_duplicates()['entrez_gene'].duplicated().sum() == 0), "There are still entrez IDs with multiple symbols after discarding 'LOCXXXX' and 'GmXXXX' ones"
-
-
-    # Join with ';' when an EntrezID has more than 1 human ortholog
-    agg_funcs = {
-        "symbol": lambda x: ';'.join(x.unique()),
-        "TaxID": lambda x: ';'.join(x.unique()),
-        "human_entrez_gene": lambda x: ';'.join(x),
-        "hgnc_id": lambda x: ';'.join(x),
-        "human_symbol": lambda x: ';'.join(x),
-    }
-    orthologs = orthologs.groupby(['entrez_gene']).agg(agg_funcs).reset_index()
-
-    # Add NFKB & AP1 orthologs
-    for dimer in ['NFKB', 'AP1']:
-        orthologs = pd.concat([orthologs, pd.DataFrame([{
-            'entrez_gene': f'Complex:{dimer}',
-            'symbol': dimer,
-            'TaxID': '9606',
-            'human_entrez_gene': f'Complex:{dimer}',
-            'hgnc_id': f'Complex:{dimer}',
-            'human_symbol': dimer,
-        }])], ignore_index=True)
-
-    # Add columns with 1-to-1 mapping (unique_human_symbol, unique_hgnc_id, unique_human_entrez_gene), by using either exact match or closest match of symbol wrt human_symbol
-    orthologs = orthologs.join(orthologs.apply(assign_unique_fields, axis=1))
-
-    # Show how many orthologs we get
-    print(f"We get ortholog info for {len(orthologs)}/{len(TF_TG_ids)} Gene IDs\n")
-
-    # Fill in ortholog columns for TFs and TGs using the "unique" fields for a 1-to-1 mapping
-    orthologs_map = orthologs.set_index('entrez_gene').to_dict(orient='index')
-    for T in ('TF', 'TG'):
-        ExTRI2_df[f"{T}_human_entrez_gene"] = ExTRI2_df[f'{T} Id'].apply(lambda id: fill_ortholog_column(id, "unique_human_entrez_gene"))
-        ExTRI2_df[f"{T}_hgnc_id"]           = ExTRI2_df[f'{T} Id'].apply(lambda id: fill_ortholog_column(id, "unique_hgnc_id"))
-        ExTRI2_df[f"{T}_human_symbol"]      = ExTRI2_df[f'{T} Id'].apply(lambda id: fill_ortholog_column(id, "unique_human_symbol"))
-
-    return ExTRI2_df, orthologs
-
-def add_human_orthologs(ExTRI2_df: pd.DataFrame, ensembl_folder: str, EntrezID_to_Symbol_p: str) -> pd.DataFrame:
-    '''
-    Add human orthologs, using Ensembl Genes 115 release.
-    Returns: 
-        ExTRI2_df with four new columns: TF_human_Id, TG_human_Id, TF_HGNC_ID, TG_HGNC_ID
-    '''
-
-    # Load Ensembl orthologs (Ensembl Genes 115 version)
-    ensembl_orthologs = pd.read_csv(ensembl_folder + 'mart_export_human_orthologs.txt', sep='\t', dtype='str')
-    ensembl_orthologs.rename(columns={'Norway rat - BN/NHsdMcwi gene stable ID': 'Norway rat gene stable ID'}, inplace=True)
-
-    # Only keep relevant rows and columns
-    m = ensembl_orthologs['Norway rat gene stable ID'].isna() & ensembl_orthologs['Mouse gene stable ID'].isna()
-    ensembl_orthologs = ensembl_orthologs[~m][['Gene stable ID', 'Norway rat gene stable ID', 'Mouse gene stable ID']]
-
-    # Load the mappings from Ensembl Gene IDs to NCBI Gene IDs
-    ensembl_human_df = pd.read_csv(ensembl_folder + 'mart_export_homo_sapiens_Ensembl_to_NCBI.txt', sep='\t', dtype='str')
-    ensembl_mouse_df = pd.read_csv(ensembl_folder + 'mart_export_mus_musculus_Ensembl_to_NCBI.txt', sep='\t', dtype='str')
-    ensembl_rat_df = pd.read_csv(ensembl_folder + 'mart_export_rattus_norvegicus_Ensembl_to_NCBI.txt', sep='\t', dtype='str')
-
-    # Build mapping dictionaries from Ensembl ID to NCBI Gene ID
-    ensembl_human_map = dict(zip(ensembl_human_df['Gene stable ID'], ensembl_human_df['NCBI gene (formerly Entrezgene) ID']))
-    ensembl_mouse_map = dict(zip(ensembl_mouse_df['Gene stable ID'], ensembl_mouse_df['NCBI gene (formerly Entrezgene) ID']))
-    ensembl_rat_map   = dict(zip(ensembl_rat_df['Gene stable ID'],   ensembl_rat_df['NCBI gene (formerly Entrezgene) ID']))
-
-    # Add the NCBI Gene ID to the ortholog dataframe
-    ensembl_orthologs['Human NCBI Gene ID'] = ensembl_orthologs['Gene stable ID'].map(ensembl_human_map)
-    ensembl_orthologs['Mouse NCBI Gene ID'] = ensembl_orthologs['Mouse gene stable ID'].map(ensembl_mouse_map)
-    ensembl_orthologs['Rat NCBI Gene ID']   = ensembl_orthologs['Norway rat gene stable ID'].map(ensembl_rat_map)
-
-    # Build mapping from NCBI Gene ID to Human NCBI Gene ID
-    mouse_map = dict(zip(ensembl_orthologs['Mouse NCBI Gene ID'], ensembl_orthologs['Human NCBI Gene ID']))
-    rat_map   = dict(zip(ensembl_orthologs['Rat NCBI Gene ID'],   ensembl_orthologs['Human NCBI Gene ID']))
-    orthologs_map = {k: v for k, v in (mouse_map | rat_map).items() if pd.notna(k) and pd.notna(v)} | {'Complex:NFKB': 'Complex:NFKB', 'Complex:AP1': 'Complex:AP1'}
-
-    # Build mapping from NCBI Gene ID to HGNC ID
-    hgnc_map = dict(zip(ensembl_human_df['NCBI gene (formerly Entrezgene) ID'], ensembl_human_df['HGNC ID']))
-    hgnc_map = {k: v for k, v in hgnc_map.items() if pd.notna(k) and pd.notna(v)} | {'Complex:NFKB': 'Complex:NFKB', 'Complex:AP1': 'Complex:AP1'}
-
-    def map_NCBI_ID_to_human_NCBI_ID(orthologs_map, gene_ids, TaxID):
-        '''Map gene IDs (human, mouse, rat) to human NCBI Gene IDs, using Ensembl 115 release orthologs.'''
-        if TaxID == '9606':
-            return gene_ids
-
-        return ";".join([orthologs_map.get(id, '-') for id in gene_ids.split(';')])
-        
-
-    def map_NCBI_ID_to_HGNC_ID(hgnc_map, gene_ids):
-        '''Map human gene ID to HGNC ID.'''
-        human_ids = []
-        for id in gene_ids.split(';'):
-            human_ids.append(hgnc_map.get(id, '-'))
-        return ";".join(human_ids)
-
-
-    with open(EntrezID_to_Symbol_p, 'r') as f:
-        EntrezIDtoSymbol = json.load(f)
-
-    def map_NCBI_ID_to_Symbol(EntrezIDtoSymbol, gene_ids):
-        '''Map human gene ID to gene symbol.'''
-        human_symbols = [EntrezIDtoSymbol.get(id, {'Name': ''})['Name'] for id in gene_ids.split(';')]
-        return ";".join(human_symbols)
-        print(gene_ids, human_symbols)
-
-    for T in ('TF', 'TG'):
-        # Add Human NCBI ID into the final dataframe
-        ExTRI2_df[f'{T}_human_Id'] = ExTRI2_df.apply(lambda row: map_NCBI_ID_to_human_NCBI_ID(orthologs_map, row[f'{T} Id'], row[f'{T} TaxID']), axis=1)
-
-        # Add HGNC ID into the final dataframe
-        ExTRI2_df[f'{T}_HGNC_ID'] = ExTRI2_df.apply(lambda row: map_NCBI_ID_to_HGNC_ID(hgnc_map, row[f'{T}_human_Id']), axis=1)
-    
-        # Add human symbols
-        ExTRI2_df[f'{T}_human_symbol'] = ExTRI2_df.apply(lambda row: map_NCBI_ID_to_Symbol(EntrezIDtoSymbol, row[f'{T}_human_Id']), axis=1)
-    
-    # LOG
-    # Show how many orthologs / HGNCs are missing
-    m = (ExTRI2_df['TF_human_Id'] == '-') | (ExTRI2_df['TG_human_Id'] == '-')
-    print(f"No orthologs found for           {m.sum() / len(ExTRI2_df):.2%} of the rows ({m.sum()} rows)")
-
-    m = ExTRI2_df['TF_human_Id'].str.contains('-') | ExTRI2_df['TG_human_Id'].str.contains('-')
-    print(f"Some ortholog is not present in  {m.sum() / len(ExTRI2_df):.2%} of the rows ({m.sum()} rows)")
-
-    m = (ExTRI2_df['TF_HGNC_ID'] == '-') | (ExTRI2_df['TG_HGNC_ID'] == '-')
-    print(f"No HGNCs for                     {m.sum() / len(ExTRI2_df):.2%} of the rows ({m.sum()} rows)")
-
-    m = ExTRI2_df['TF_HGNC_ID'].str.contains('-') | ExTRI2_df['TG_HGNC_ID'].str.contains('-')
-    print(f"Some HGNC is not present in      {m.sum() / len(ExTRI2_df):.2%} of the rows ({m.sum()} rows)")
-
-    return ExTRI2_df
-# ----------------
-
 # --- Orthologs functions
-
 def fetch_entrez_symbols(gene_ids, email="you@example.com", batch=200) -> dict:
     """
     Query NCBI's Entrez Gene (E-utilities) API to get gene symbols for a list of Entrez IDs.
@@ -619,16 +390,20 @@ def create_human_NCBI_to_HGNC_mapping(ensembl_folder: str) -> dict:
     ensembl_human_df = ensembl_human_df[m][['HGNC ID', 'NCBI gene (formerly Entrezgene) ID']].drop_duplicates()
 
     # Drop rows with NCBI IDs that have multiple HGNC IDs
-    m = ensembl_human_df['NCBI gene (formerly Entrezgene) ID'].duplicated(keep=False)
-    print(f"Discarding from the NCBI_Gene_ID-to_HGNC_ID mapping {ensembl_human_df['NCBI gene (formerly Entrezgene) ID'].duplicated().sum()} Human Gene IDs out of {ensembl_human_df['NCBI gene (formerly Entrezgene) ID'].nunique()} as they map to multiple HGNCs")
-    ensembl_human_df = ensembl_human_df[~m]
+    duplicated_m = ensembl_human_df['NCBI gene (formerly Entrezgene) ID'].duplicated(keep=False)
+
+    print(
+        f"{ensembl_human_df['NCBI gene (formerly Entrezgene) ID'].duplicated().sum()} out of {ensembl_human_df['NCBI gene (formerly Entrezgene) ID'].nunique()} human NCBI Gene IDs map to multiple HGNC IDs. "
+        "Assigning 'None' for those ambiguous mappings."
+    )
+    ensembl_human_df.loc[duplicated_m, 'HGNC ID'] = "None"
 
     # Create a one-to-one dictionary
     humanID_to_HGNC = dict(zip(ensembl_human_df['NCBI gene (formerly Entrezgene) ID'], ensembl_human_df['HGNC ID']))
 
     return humanID_to_HGNC
 
-def create_orthologs_df(ensembl_folder: str, EntrezID_to_Symbol_TRI_p: str, ExTRI2_df: pd.DataFrame) -> pd.DataFrame:
+def create_orthologs_df(ensembl_folder: str, EntrezID_to_Symbol_TRI_p: str, manually_checked_orthologs_p: str, ExTRI2_df: pd.DataFrame) -> pd.DataFrame:
     '''
     Create a dataframe with the orthologs mapping from rodent NCBI Gene ID to human NCBI Gene ID, HGNC ID, and human gene symbol.
 
@@ -639,6 +414,9 @@ def create_orthologs_df(ensembl_folder: str, EntrezID_to_Symbol_TRI_p: str, ExTR
     - orthologs_df: pd.DataFrame, with columns: Gene_ID, human_gene_ID, HGNC_ID, Gene Symbol, human_gene_symbol
      - As well as unique mappings using same name, or first family name rule
     '''
+    # Load manually checked orthologs
+    with open(manually_checked_orthologs_p, 'r') as f:
+        manual_orthologs_mapping = json.load(f)
 
     def map_NCBI_ID_to_Symbol(EntrezIDtoSymbol, gene_ids):
         '''Map human gene ID to gene symbol.'''
@@ -648,8 +426,9 @@ def create_orthologs_df(ensembl_folder: str, EntrezID_to_Symbol_TRI_p: str, ExTR
     def get_unique_human_symbol_index(row):
         '''
         Get the index of the unique human gene symbol following these rules:
-        1) Return exact uppercase match, if any
-        2) First gene family member (e.g. ACSM2A for ACSM2; if multiple, take the one with the smallest numeric suffix)
+        1) Return exact lowercase match, if any
+        2) Manually corrected ortholog
+        3) First gene family member (e.g. ACSM2A for ACSM2; if multiple, take the one with the smallest numeric suffix)
         3) If no match, return None
         '''
         # Get rodent symbol & human symbols
@@ -664,9 +443,17 @@ def create_orthologs_df(ensembl_folder: str, EntrezID_to_Symbol_TRI_p: str, ExTR
         for i, c in enumerate(human_symbols):
             if c == rodent_symbol:
                 return i
+        
+        # 2) Check if manually corrected
+        if row['Gene_ID'] in manual_orthologs_mapping:
+            corrected_symbol = manual_orthologs_mapping[row['Gene_ID']]['unique_human_gene_symbol'].upper()
+            for i, c in enumerate(human_symbols):
+                if c == corrected_symbol:
+                    return i
 
-        # 2) Apply first gene family member rule:
-        # Split the symbol into stem, number, letter, number2
+        # 3) Apply first gene family member rule:
+        # Assumption: gene names are formed by "[A-Z]+[0-9]*[A-Z]?"
+        # Extract family stem and number (e.g. ADH1 -> stem=ADH, number=1)
         m = re.match(r'^([A-Z]+)(\d+)?([A-Z]?)(\d+)?$', rodent_symbol)
         stem = m.group(1) if m else rodent_symbol
         num = m.group(2) if (m and m.group(2)) else None
@@ -679,9 +466,9 @@ def create_orthologs_df(ensembl_folder: str, EntrezID_to_Symbol_TRI_p: str, ExTR
             return None
         
         # Prefer candidates that match the stem
-        exact = [i for i, hs in candidates if hs == stem]
-        if exact:
-            return exact[0]
+        for i, hs in candidates:
+            if hs == stem:
+                return i
             
         # If there is a number, prefer same numeric family (e.g. ADH1A over ADH2A)
         if num:
@@ -692,7 +479,6 @@ def create_orthologs_df(ensembl_folder: str, EntrezID_to_Symbol_TRI_p: str, ExTR
                 exact = [i for i, hs in same_family if hs == stem + num]
                 if exact:
                     return exact[0]
-                
                 same_family.sort(key=lambda x: x[1])
                 return same_family[0][0]
             
@@ -898,14 +684,8 @@ def postprocess(ExTRI2_df: pd.DataFrame, TRI_sents: bool, config: dict) -> tuple
     if TRI_sents:
         remove_duplicates(ExTRI2_df)
 
-    # TODO - Remove these two, they're outdated
-    # Add HGNC symbols
-    # ExTRI2_df, orthologs_df = add_HGNC_symbols(ExTRI2_df, config['orthologs_p'])
-    # Add human orthologs
-    # ExTRI2_df = add_human_orthologs(ExTRI2_df, config['ensembl_folder'], config[f'EntrezID_to_Symbol_{df_type}_p'])
-
     # Add orthologs using Ensembl 115 release
-    orthologs_df = create_orthologs_df(config['ensembl_folder'], config[f'EntrezID_to_Symbol_{df_type}_p'], ExTRI2_df)
+    orthologs_df = create_orthologs_df(config['ensembl_folder'], config[f'EntrezID_to_Symbol_{df_type}_p'], config['manually_checked_orthologs_p'], ExTRI2_df) 
     ExTRI2_df = add_ortholog_columns(ExTRI2_df, orthologs_df)
     print()
 
@@ -933,7 +713,6 @@ def main():
     save_df(not_TRI_sample_df, config['nonTRI_sample_p'])
     
     # Save orthologs_df for reference
-    # TODO - This must be updated in Drive
     orthologs_df.to_csv(config['orthologs_final_p'], sep='\t', index=False)
 
 if __name__ == "__main__":

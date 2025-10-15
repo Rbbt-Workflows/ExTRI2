@@ -1,0 +1,22 @@
+{
+    "25642": {
+        "unique_human_gene_symbol": "CYP3A4",
+        "comment": "complies with the 'first-gene-family'-rule"
+    },
+    "53973": {
+        "unique_human_gene_symbol": "CYP3A4",
+        "comment": "complies with the 'first-gene-family'-rule"
+    },
+    "387151": {
+        "unique_human_gene_symbol": "MIR133A1",
+        "comment": "complies with the 'first-gene-family'-rule"
+    },
+    "68774": {
+        "unique_human_gene_symbol": "MS4A6A",
+        "comment": "complies with the 'first-gene-family'-rule"
+    },
+    "394432": {
+        "unique_human_gene_symbol": "UGT1A7",
+        "comment": "complies with the 'first-gene-family'-rule"
+    }
+}

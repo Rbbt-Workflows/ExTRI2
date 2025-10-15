@@ -11,7 +11,8 @@ This folder contains all original and intermediate datasets required for creatin
 
 ## Obtention of `external/` datasets
 * **TF_id/** contains the coT & dbTF IDs from both QuickGO & TFCheckpoint. See `get_NCBI_TF_IDs.ipynb` for further details
-* **human_HGNC_orthologs/**: This folder contains 3 tsv files with orthology mappings between mouse, rat and human. human_mouse & human_rat mappings were obtained from https://www.genenames.org/tools/hcop/. From there, we downloaded (01/07/2024):
+* **ensembl_Release_115_orthologs/** contains orthology mappings between mouse, rat, and human, acording to the most up-to-date orthologs release: Ensembl115, downloaded using BioMart.
+* **human_HGNC_orthologs/**: Outdated folder of orthology mappings. human_mouse & human_rat mappings were obtained from https://www.genenames.org/tools/hcop/. From there, we downloaded (01/07/2024):
   * human - mouse ortholog data as a 15 column tab delimited text file
   * human - rat ortholog data as a 15 column tab delimited text file
   * hgnc_human was downloaded from https://www.genenames.org/download/custom/ (25/08/2024) to get the HGNC IDs from human NCBI IDs
