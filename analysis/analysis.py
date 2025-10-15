@@ -33,6 +33,7 @@ def load_config() -> dict:
     config['TFs_in_ExTRI2_p']       = config['paper_tables_p'] + 'TFs_in_ExTRI2.tsv'
     config['paper_ExTRI2_p']        = config['paper_tables_p'] + 'ExTRI2_final_resource.tsv'
     config['paper_validated_p']     = config['paper_tables_p'] + 'validated_sentences.tsv'
+    config['NTNU_dataset_p']        = config['paper_tables_p'] + 'NTNU_training_dataset.tsv'
 
     return config
 
@@ -48,11 +49,11 @@ def retrieve_annotations_entrez(id_list):
 
     request = Entrez.epost("gene", id=",".join(id_list))
     result = Entrez.read(request)
-    webEnv = result["WebEnv"]
-    queryKey = result["QueryKey"]
+    webEnv = result["WebEnv"] # type: ignore
+    queryKey = result["QueryKey"] # type: ignore
     data = Entrez.esummary(db="gene", webenv=webEnv, query_key=queryKey)
     annotations = Entrez.read(data)
-    annotationsSummary = annotations['DocumentSummarySet']['DocumentSummary']
+    annotationsSummary = annotations['DocumentSummarySet']['DocumentSummary'] # type: ignore
 
     assert len(id_list) == len(annotationsSummary), f"id_list and annotationsSummary are of different length: {len(id_list)} != {len(annotationsSummary)}"
 
