@@ -56,8 +56,6 @@ def load_config() -> dict:
     config['discarded_sents_p']          = POSTPROCESS_TABLES_P + 'discarded_sents.tsv'
     config['renormalized_sents_p']       = POSTPROCESS_TABLES_P + 'renormalized_sents.tsv'
     config['orthologs_final_p']          = POSTPROCESS_TABLES_P + 'orthologs_final.tsv'   
-    
-    # TODO - Why is this not used anywhere. Where did I get rid of that?
     config['NFKB_AP1_discarded_sents_p'] = POSTPROCESS_TABLES_P + 'NFKB_AP1_discarded_sents.tsv'
     config['AP1_NFKB_breakdown_p']       = POSTPROCESS_TABLES_P + 'AP1_NFKB_breakdown.tsv'
     config['AP1_NFKB_breakdown_cols']    = ['entity', 'dimer', 'symbol', '% unmodified', '% modified', 'regex unmodified', 'regex modified']
@@ -682,7 +680,6 @@ def postprocess(ExTRI2_df: pd.DataFrame, TRI_sents: bool, config: dict) -> tuple
         remove_duplicates(ExTRI2_df)
 
     else:
-        # TODO - No need to save that one
         # Fix AP1 & NFKB normalisations (don't save stats)
         ExTRI2_df = fix_NFKB_AP1(ExTRI2_df, config, save_data=False)
 
