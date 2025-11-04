@@ -145,13 +145,14 @@ def correct_from_mask(ExTRI2_df, m, dimer):
     add_renormalisation_tag(ExTRI2_df, m, dimer)
     return ExTRI2_df
 
-def correct_dimer(ExTRI2_df: pd.DataFrame, get_masks, dimer: str, config: dict, discarded_sents: list):
+def correct_dimer(ExTRI2_df: pd.DataFrame, get_masks, dimer: str, config: dict, discarded_sents: list, save_data = True):
     for T in 'TF', 'TG':
         # Get masks for before & after renormalization
         m_orig, m_final = get_masks(ExTRI2_df, T)
 
         # Save the breakdown in a table
-        save_AP1_NFKB_breakdown_table(ExTRI2_df, m_orig, m_final, T, dimer, config)
+        if save_data:
+            save_AP1_NFKB_breakdown_table(ExTRI2_df, m_orig, m_final, T, dimer, config)
 
         # Renormalize TF entities, discard TG entities 
         if T == 'TF':
@@ -163,24 +164,25 @@ def correct_dimer(ExTRI2_df: pd.DataFrame, get_masks, dimer: str, config: dict, 
 
     return ExTRI2_df
 
-def fix_NFKB_AP1(ExTRI2_df: pd.DataFrame, config: dict) -> pd.DataFrame:
+def fix_NFKB_AP1(ExTRI2_df: pd.DataFrame, config: dict, save_data: bool = True) -> pd.DataFrame:
     '''Fix AP1 & NFKB normalisations'''
 
-    # Create an empty table where to save the AP1/NFKB renormalization breakdown
-    pd.DataFrame({v: [] for v in config['AP1_NFKB_breakdown_cols']}).to_csv(config['AP1_NFKB_breakdown_p'], sep='\t', index=False)
+    if save_data:
+        # Create an empty table where to save the AP1/NFKB renormalization breakdown
+        pd.DataFrame({v: [] for v in config['AP1_NFKB_breakdown_cols']}).to_csv(config['AP1_NFKB_breakdown_p'], sep='\t', index=False)
     
     # Initialise values
     discarded_sents = [] 
     ExTRI2_df['renormalisation'] = ''
 
     # Correct NFKB/AP1 entities & save results in the previous table   
-    ExTRI2_df = correct_dimer(ExTRI2_df, get_NFKB_masks, 'NFKB', config, discarded_sents)
-    ExTRI2_df = correct_dimer(ExTRI2_df, get_AP1_masks, 'AP1', config, discarded_sents)
+    ExTRI2_df = correct_dimer(ExTRI2_df, get_NFKB_masks, 'NFKB', config, discarded_sents, save_data)
+    ExTRI2_df = correct_dimer(ExTRI2_df, get_AP1_masks, 'AP1', config, discarded_sents, save_data)
     
-    print(f"Breakdown by NCBI Symbol saved in {config['AP1_NFKB_breakdown_p']}")
-
-    # Join & save discarded sentences
-    pd.concat(discarded_sents).to_csv(config['NFKB_AP1_discarded_sents_p'], sep='\t')
+    if save_data:
+        # Join & save discarded sentences
+        print(f"Breakdown by NCBI Symbol saved in {config['AP1_NFKB_breakdown_p']}")
+        pd.concat(discarded_sents).to_csv(config['NFKB_AP1_discarded_sents_p'], sep='\t')
     
     return ExTRI2_df
 

@@ -57,6 +57,7 @@ def load_config() -> dict:
     config['renormalized_sents_p']       = POSTPROCESS_TABLES_P + 'renormalized_sents.tsv'
     config['orthologs_final_p']          = POSTPROCESS_TABLES_P + 'orthologs_final.tsv'   
     
+    # TODO - Why is this not used anywhere. Where did I get rid of that?
     config['NFKB_AP1_discarded_sents_p'] = POSTPROCESS_TABLES_P + 'NFKB_AP1_discarded_sents.tsv'
     config['AP1_NFKB_breakdown_p']       = POSTPROCESS_TABLES_P + 'AP1_NFKB_breakdown.tsv'
     config['AP1_NFKB_breakdown_cols']    = ['entity', 'dimer', 'symbol', '% unmodified', '% modified', 'regex unmodified', 'regex modified']
@@ -557,8 +558,8 @@ def create_orthologs_df(ensembl_folder: str, EntrezID_to_Symbol_TRI_p: str, manu
 
     # Add API & NFKB complexes:
     orthologs_df = pd.concat([orthologs_df, pd.DataFrame([
-        {'Gene_ID': 'Complex:NFKB', 'human_gene_ID': 'Complex:NFKB', 'gene_symbol': 'Complex:NFKB', 'human_gene_symbol': 'Complex:NFKB', 'unique_human_gene_ID': 'Complex:NFKB', 'unique_human_gene_symbol': 'Complex:NFKB', 'HGNC_ID': 'Complex:NFKB', 'unique_HGNC_ID': 'Complex:NFKB'},
-        {'Gene_ID': 'Complex:AP1',  'human_gene_ID': 'Complex:AP1',  'gene_symbol': 'Complex:AP1',  'human_gene_symbol': 'Complex:AP1',  'unique_human_gene_ID': 'Complex:AP1',  'unique_human_gene_symbol': 'Complex:AP1',  'HGNC_ID': 'Complex:AP1',  'unique_HGNC_ID': 'Complex:AP1'},
+        {'Gene_ID': 'Complex:NFKB', 'human_gene_ID': 'Complex:NFKB', 'gene_symbol': 'NFKB', 'human_gene_symbol': 'NFKB', 'unique_human_gene_ID': 'Complex:NFKB', 'unique_human_gene_symbol': 'NFKB', 'HGNC_ID': 'Complex:NFKB', 'unique_HGNC_ID': 'Complex:NFKB'},
+        {'Gene_ID': 'Complex:AP1',  'human_gene_ID': 'Complex:AP1',  'gene_symbol': 'AP1',  'human_gene_symbol': 'AP1',  'unique_human_gene_ID': 'Complex:AP1',  'unique_human_gene_symbol': 'AP1',  'HGNC_ID': 'Complex:AP1',  'unique_HGNC_ID': 'Complex:AP1'},
     ])], ignore_index=True)
 
     return orthologs_df
@@ -665,24 +666,29 @@ def postprocess(ExTRI2_df: pd.DataFrame, TRI_sents: bool, config: dict) -> tuple
     ExTRI2_df = drop_GTFs(ExTRI2_df)
     ExTRI2_df = remove_other_species(ExTRI2_df, TaxID)
 
-    # Fix AP1 & NFKB normalisations
-    ExTRI2_df = fix_NFKB_AP1(ExTRI2_df, config)
-
     # Renormalize & discard sentences with common mistakes
     if TRI_sents:
+        # Fix AP1 & NFKB normalisations & save (breakdown & discarded sentences)
+        ExTRI2_df = fix_NFKB_AP1(ExTRI2_df, config, save_data=True)
+
         # Save version before renormalisation
         save_df(ExTRI2_df, config['TRI_pre_renorm_p'])
 
         # Renormalise & discard
         renormalize(ExTRI2_df, renormalized_sents_path=config['renormalized_sents_p'])
         ExTRI2_df = discard(ExTRI2_df, discarded_sents_path=config['discarded_sents_p'])
+
+        # Remove duplicates (if formed after renormalization)
+        remove_duplicates(ExTRI2_df)
+
     else:
+        # TODO - No need to save that one
+        # Fix AP1 & NFKB normalisations (don't save stats)
+        ExTRI2_df = fix_NFKB_AP1(ExTRI2_df, config, save_data=False)
+
         renormalize(ExTRI2_df, renormalized_sents_path = None)
         ExTRI2_df = discard(ExTRI2_df, discarded_sents_path = None)
 
-    # Remove duplicates (if formed after renormalization)
-    if TRI_sents:
-        remove_duplicates(ExTRI2_df)
 
     # Add orthologs using Ensembl 115 release
     orthologs_df = create_orthologs_df(config['ensembl_folder'], config[f'EntrezID_to_Symbol_{df_type}_p'], config['manually_checked_orthologs_p'], ExTRI2_df) 
@@ -701,12 +707,12 @@ def main():
         get_TRI_nonTRI_raw_dbs(config['raw_results_p'], config['raw_TRI_p'], config['raw_nonTRI_sample_p'], config['chunk_size'])
 
     # Load raw dataframes
-    TRI_df            = load_preprocess_df(config['raw_TRI_p'])
     not_TRI_sample_df = load_preprocess_df(config['raw_nonTRI_sample_p'])
+    TRI_df            = load_preprocess_df(config['raw_TRI_p'])
 
     # Postprocess
-    TRI_df, orthologs_df = postprocess(TRI_df,            TRI_sents=True,  config=config)
     not_TRI_sample_df, _ = postprocess(not_TRI_sample_df, TRI_sents=False, config=config)
+    TRI_df, orthologs_df = postprocess(TRI_df,            TRI_sents=True,  config=config)
 
     # Save
     save_df(TRI_df, config['final_ExTRI2_p'])
