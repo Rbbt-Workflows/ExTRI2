@@ -61,7 +61,7 @@ module ExTRI2
 
   task_alias :to_human, ExTRI2, :to_taxa, name: "Human", taxa: "9606"
 
-  input :original, :file, "ExTRI2 main result", nil, :nofile => true
+  input :original, :file, "ExTRI2 main result", Rbbt.share.ExTRI2.sentences, :nofile => true
   input :organism, :string, "Organism code", "Hsa/feb2014"
   dep :to_taxa, name: :placeholder, taxa: :placeholder do |jobname,options|
     organism = options[:organism]
@@ -113,7 +113,7 @@ module ExTRI2
 
   dep_task :ExTRI2_final, ExTRI2, :ExTRI2_human, original: Rbbt.share.ExTRI2.sentences.find
 
-  dep :ExTRI2_human, original: Rbbt.share.ExTRI2.sentences.find
+  dep :ExTRI2_human
   input :remove_auto_regulation, :boolean, "Remove auto-regulation", false
   input :only_authoritative_tfs, :boolean, "Use only authoritative TFs", false
   input :no_MoR, :boolean, "Don't use MoR", false
