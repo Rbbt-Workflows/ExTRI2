@@ -155,7 +155,6 @@ def combine_discarded_sents(config: dict) -> None:
 
 def create_paper_TF_tables(ExTRI2_df: pd.DataFrame, TFs_df: pd.DataFrame, config: dict) -> pd.DataFrame:
 
-
     # Create 'human_TF_type' column, which prioritises the human TF type, and otherwise, it follows the priority order:
     TFtype_priority = {'dbTF': 3, 'coTF': 2, 'coTF candidate': 1} # dbTF > coTF > coTF candidate
 
@@ -179,14 +178,14 @@ def create_paper_TF_tables(ExTRI2_df: pd.DataFrame, TFs_df: pd.DataFrame, config
     TFs_df["In ExTRI2"] = TFs_df['Gene ID'].isin(geneIDs_in_ExTRI2)
 
     # Save all considered TFs (those with a defined TF type)
-    m = TFs_df['TF type'].isin(TFtype_priority.keys())
+    m = TFs_df['updated TF type'].isin(TFtype_priority.keys())
     print(f'We will discard {(~m).sum()} TFs that are not classified into any TF type')
     TFs_df[~m][['Gene ID', 'Symbol', 'TaxID']].to_csv(config['all_considered_TFs_p'], sep="\t", index=False)
 
     # Create table with only TFs in ExTRI2
     TFs_in_ExTRI2 = (TFs_df
-        .drop(columns=['TF type']).rename(columns={'updated TF type': 'TF type'})
-        .loc[TFs_df['In ExTRI2'] & (TFs_df['TF type'].isin(TFtype_priority.keys()))].drop(columns=['In ExTRI2'])
+        .drop(columns=['original TF type']).rename(columns={'updated TF type': 'TF type'})
+        .loc[TFs_df['In ExTRI2'] & (TFs_df['updated TF type'].isin(TFtype_priority.keys()))].drop(columns=['In ExTRI2'])
     )
 
     # Create mapping from human_gene_ID → resolved TF type and add it to the main DataFrame
@@ -195,7 +194,7 @@ def create_paper_TF_tables(ExTRI2_df: pd.DataFrame, TFs_df: pd.DataFrame, config
         .apply(resolve_human_tf_type).to_dict()
     )
     TFs_in_ExTRI2['human_TF_type'] = TFs_in_ExTRI2['human_gene_ID'].map(tf_type_map)
-    TFs_df['human_TF_type'] = TFs_df['human_gene_ID'].map(tf_type_map)
+    # TFs_df['human_TF_type'] = TFs_df['human_gene_ID'].map(tf_type_map)
 
     # Save the table
     TFs_in_ExTRI2.to_csv(config['TFs_in_ExTRI2_p'], sep="\t", index=False)
