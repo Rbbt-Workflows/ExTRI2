@@ -522,7 +522,7 @@ def create_orthologs_df(ensembl_folder: str, EntrezID_to_Symbol_TRI_p: str, manu
     geneIDs_in_ExTRI2 = {id for col in ['TF Id', 'TG Id'] for ids in ExTRI2_df[col].unique() for id in ids.split(';')}
     orthologs_df = orthologs_df[orthologs_df['Gene_ID'].isin(geneIDs_in_ExTRI2)].reset_index(drop=True)
 
-    # EntrezIDtoSymbol only contains IDs in ExTRI. Retrieve missing ones from Entrez
+    # EntrezIDtoSymbol only contains IDs in ExTRI2. Retrieve missing ones from Entrez
     all_humanIDs = {id  for ids in orthologs_df['human_gene_ID'].unique() for id in ids.split(';')}
     geneIDs_w_missing_symbol = [id for id in all_humanIDs if (id not in EntrezIDtoSymbol) and (id not in ['-', ''])]
     print(f"Fetching {len(geneIDs_w_missing_symbol)} missing human gene symbols from Entrez...")
