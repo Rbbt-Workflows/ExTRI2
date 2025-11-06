@@ -227,6 +227,10 @@ def remove_duplicates(TRI_df: pd.DataFrame) -> None:
 
     # Only keep the TRI sentence labelled as TRI with the highest score:
     TRI_df.sort_values(by=['TRI score'], ascending=False, inplace=True)
+
+    dropped = TRI_df.duplicated(subset=['PMID+Sent+TRI_Id'], keep='first').sum()
+    print(f"{dropped} sentences ({dropped/len(TRI_df):.2%} of dataset) are dropped as they are duplicates")
+
     TRI_df.drop_duplicates(subset=['PMID+Sent+TRI_Id'], keep="first", inplace=True)
     return
 
@@ -248,7 +252,7 @@ def add_symbols_TaxID(df: pd.DataFrame, EntrezIDtoSymbol_path: str) -> pd.DataFr
 
     # Drop rows without TG Id 
     m_drop = df[f'TG Id'] == ''
-    print(f"{m_drop.sum()} sentences are dropped as their TG is not normalised\n")
+    print(f"{m_drop.sum()} sentences are dropped as their TG is not normalised")
     df = df[~m_drop].copy()
 
     for T in ('TF', 'TG'):
@@ -270,8 +274,10 @@ def remove_other_species(df: pd.DataFrame, TaxID: dict) -> pd.DataFrame:
         df.loc[:, f'{T} TaxID'] = df.loc[:, f'{T} TaxID'].apply(lambda x: ';'.join(set(x.split(';'))))
 
         # Only keep rows with 1 TaxID
-        df = df[df[f'{T} TaxID'].isin(TaxIDs)]
-
+        m = df[f'{T} TaxID'].isin(TaxIDs)
+        print(f"{(~m).sum()} sentences ({(~m).mean():.2%}) are dropped as their {T} is from other species")
+        df = df[m]
+    print()
     return df
 
 # --- Orthologs functions
@@ -636,6 +642,8 @@ def add_TF_type(ExTRI2_df: pd.DataFrame, config: dict) -> None:
 def drop_GTFs(ExTRI2_df: pd.DataFrame) -> pd.DataFrame:
     '''Drop all sentences where the TF uniquely maps to a GTF'''
     m_drop = ExTRI2_df["TF_type"].apply(lambda x: set(x.split(';')).issubset({'GTF', '-'}))
+    print(f"{m_drop.sum()} sentences ({m_drop.mean():.2%}) are dropped as their TF is a GTF")
+
     return ExTRI2_df[~m_drop]
 
 def save_df(df, output_p):
