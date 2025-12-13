@@ -325,8 +325,8 @@ def fix_NFKB_AP1_mismatches(merged_df: pd.DataFrame) -> None:
     '''
 
     # Get sentences validated and prerenorm sentences that don't match. Use a set to ignore order in cases like 'BRAC1;BRAC2'
-    tf_val_symbol_set = merged_df['TF Symbol_validated'].fillna('').str.upper().str.split(";").apply(lambda x: set(x))
-    tf_pre_symbol_set = merged_df['TF Symbol_prerenorm'].fillna('').str.upper().str.split(";").apply(lambda x: set(x))
+    tf_val_symbol_set = merged_df['TF Symbol_validated'].fillna('').str.upper().str.split(';').apply(lambda x: set(x))
+    tf_pre_symbol_set = merged_df['TF Symbol_prerenorm'].fillna('').str.upper().str.split(';').apply(lambda x: set(x))
     m_mismatch = tf_val_symbol_set != tf_pre_symbol_set
 
     # Assert that all cases are due to NFKB / AP1 renormalisations
@@ -351,12 +351,12 @@ def fix_TG_Symbol_ID_mismatches(merged_df, state='prerenorm') -> None:
     '''
 
     # Get sentences where old and new TF Symbol don't match. Use a set to ignore order in cases like 'BRAC1;BRAC2'
-    tg_pre_symbol_set = merged_df[f'TG Symbol_{state}'].fillna('').str.upper().str.split(";").apply(lambda x: set(x))
-    tg_val_symbol_set = merged_df['TG Symbol_validated'].fillna('').str.upper().str.split(";").apply(lambda x: set(x))
+    tg_pre_symbol_set = merged_df[f'TG Symbol_{state}'].fillna('').str.upper().str.split(';').apply(lambda x: set(x))
+    tg_val_symbol_set = merged_df['TG Symbol_validated'].fillna('').str.upper().str.split(';').apply(lambda x: set(x))
     m_mismatch = tg_pre_symbol_set != tg_val_symbol_set
 
-    tg_pre_id_set = merged_df[f'TG Id_{state}'].fillna('').str.split(";").apply(lambda x: set(x))
-    tg_val_id_set = merged_df['TG Id_validated'].fillna('').str.split(";").apply(lambda x: set(x))
+    tg_pre_id_set = merged_df[f'TG Id_{state}'].fillna('').str.split(';').apply(lambda x: set(x))
+    tg_val_id_set = merged_df['TG Id_validated'].fillna('').str.split(';').apply(lambda x: set(x))
     m_id_mismatch = tg_pre_id_set != tg_val_id_set
 
     # Ensure the mismatch rows are the same for the symbol and the ID

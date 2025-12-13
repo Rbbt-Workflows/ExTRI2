@@ -24,11 +24,12 @@ def load_config() -> dict:
     config['models_p'] = '../classifiers_training/saved_models/'
 
     # Other tables
+    config['manually_retrieved_TF_orthologs_p'] = DATA_P + 'postprocessing/TFs_with_missing_human_orthologs_manual.tsv'
     config['discarded_sents_p']    = DATA_P + 'postprocessing/tables/discarded_sents.tsv'
     config['nfkb_ap1_discarded_p'] = DATA_P + 'postprocessing/tables/NFKB_AP1_discarded_sents.tsv'
+    config['orthologs_p']          = DATA_P + 'postprocessing/tables/orthologs_final.tsv'
     config['all_human_TGs_p']      = DATA_P + 'external/all_human_genes.tsv'
     config['all_TFs_p']            = 'tables/all_TFs.tsv'
-
 
     # Tables included in the paper
     config['paper_tables_p'] = DATA_P + 'paper_tables/'
@@ -38,6 +39,7 @@ def load_config() -> dict:
     config['paper_validated_p']     = config['paper_tables_p'] + 'validated_sentences.tsv'
     config['NTNU_dataset_p']        = config['paper_tables_p'] + 'NTNU_training_dataset.tsv'
     config['all_discarded_sents_p'] = config['paper_tables_p'] + 'discarded_sents.tsv'
+    config['paper_orthologs_p']     = config['paper_tables_p'] + 'orthologs_final.tsv'
 
     return config
 
@@ -83,9 +85,9 @@ def modify_TF_type(df, TFs_df):
 
     # Function to map IDs
     def map_ids(row):
-        return ";".join(
+        return ';'.join(
             id_to_type.get(x.strip(), '-')   # use "-" if unknown
-            for x in row['TF Id'].split(";")
+            for x in row['TF Id'].split(';')
         )
 
     df['new_TF_type'] = df.apply(map_ids, axis=1)
@@ -99,7 +101,7 @@ def modify_TF_type(df, TFs_df):
     df.rename(columns={'new_TF_type': 'TF_type'}, inplace=True)
     # Remove rows with no TF type (all "-")
     n_before = len(df)
-    df = df[df['TF_type'].str.split(";").apply(lambda x: set(x) != {'-'})].copy()
+    df = df[df['TF_type'].str.split(';').apply(lambda x: set(x) != {'-'})].copy()
     n_after = len(df)
     print(f"Removed {n_before - n_after} ({(n_before - n_after) / n_before:.2%}) rows with no TF type ({n_before} -> {n_after})")
 
@@ -174,13 +176,15 @@ def create_paper_TF_tables(ExTRI2_df: pd.DataFrame, TFs_df: pd.DataFrame, config
         return tf_types[0]
 
     # Get TFs that appear in ExTRI2 at least once
-    geneIDs_in_ExTRI2 = {id for col in ['TF Id', 'TG Id'] for ids in ExTRI2_df[col].unique() for id in ids.split(';')}
+    # TODO - For some reason I was also considering TG IDs. Removed them now, but what implications will this have?
+    # geneIDs_in_ExTRI2 = {id for col in ['TF Id', 'TG Id'] for ids in ExTRI2_df[col].unique() for id in ids.split(';')}
+    geneIDs_in_ExTRI2 = {id for ids in ExTRI2_df['TF Id'].unique() for id in ids.split(';')}
     TFs_df["In ExTRI2"] = TFs_df['Gene ID'].isin(geneIDs_in_ExTRI2)
 
     # Save all considered TFs (those with a defined TF type)
     m = TFs_df['updated TF type'].isin(TFtype_priority.keys())
     print(f'We will discard {(~m).sum()} TFs that are not classified into any TF type')
-    TFs_df[~m][['Gene ID', 'Symbol', 'TaxID']].to_csv(config['all_considered_TFs_p'], sep="\t", index=False)
+    TFs_df[m][['Gene ID', 'Symbol', 'TaxID']].to_csv(config['all_considered_TFs_p'], sep="\t", index=False)
 
     # Create table with only TFs in ExTRI2
     TFs_in_ExTRI2 = (TFs_df
@@ -194,7 +198,8 @@ def create_paper_TF_tables(ExTRI2_df: pd.DataFrame, TFs_df: pd.DataFrame, config
         .apply(resolve_human_tf_type).to_dict()
     )
     TFs_in_ExTRI2['human_TF_type'] = TFs_in_ExTRI2['human_gene_ID'].map(tf_type_map)
-    # TFs_df['human_TF_type'] = TFs_df['human_gene_ID'].map(tf_type_map)
+
+    # TODO I might need to add the human TF type. See what I can do automatically, then manually add the rest, if needed
 
     # Save the table
     TFs_in_ExTRI2.to_csv(config['TFs_in_ExTRI2_p'], sep="\t", index=False)

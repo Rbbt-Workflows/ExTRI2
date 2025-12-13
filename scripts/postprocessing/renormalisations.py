@@ -392,8 +392,7 @@ def discard(ExTRI2_df: pd.DataFrame, discarded_sents_path: str|None) -> pd.DataF
     ExTRI2_df = discard_CD_cells(ExTRI2_df)
     ExTRI2_df = discard_of_entity(ExTRI2_df)
     ExTRI2_df = discard_translation(ExTRI2_df)
-    # TODO - Remove if we fully decide to keep autoregulations
-    # ExTRI2_df = discard_autoregulation(ExTRI2_df)
+    ExTRI2_df = discard_autoregulation(ExTRI2_df)
     
     print()
 
