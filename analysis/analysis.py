@@ -40,6 +40,7 @@ def load_config() -> dict:
     config['NTNU_dataset_p']        = config['paper_tables_p'] + 'NTNU_training_dataset.tsv'
     config['all_discarded_sents_p'] = config['paper_tables_p'] + 'discarded_sents.tsv'
     config['paper_orthologs_p']     = config['paper_tables_p'] + 'orthologs_final.tsv'
+    config['collectri2_p']             = config['paper_tables_p'] + 'CollecTRI2.tsv.gz'
 
     return config
 
