@@ -4,6 +4,15 @@
 This repository contains the scripts and datasets used for the development of the ExTRI2 pipeline.
 
 ## Setup
+Create the environment to run the scripts. We used python=3.12
+
+```
+python -m venv .extri2_venv
+source .extri2_venv/bin/activate
+pip install -r requirements.txt
+python -m ipykernel install --user --name=extri2_venv
+```
+
 - [ ] Explain how to setup RBBT
 
 ## Structure

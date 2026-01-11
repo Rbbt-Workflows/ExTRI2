@@ -12,6 +12,7 @@ results
 wandb
 __pycache__
 .general_env
+.extri2_venv
 
 classifiers_training/training_env/
 classifiers_training/pretrained_models/distilbert-base-uncased/
