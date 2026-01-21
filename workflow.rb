@@ -197,7 +197,9 @@ require 'ExTRI2/entities'
 
 
 require 'ExTRI2/tasks/human.rb'
+require 'ExTRI2/tasks/collec_tri2.rb'
 require 'ExTRI2/tasks/knocktf.rb'
+require 'ExTRI2/tasks/tmp.rb'
 
 #require 'rbbt/knowledge_base/ExTRI2'
 #require 'rbbt/entity/ExTRI2'

@@ -33,8 +33,8 @@ module ExTRI2
     {jobname: jobname, inputs: options}
   end
 
-  dep :regulome
-  task_alias :evaluate_knocktf, SaezLab, :evaluate_knocktf, "SaezLab#regulome" => :regulome, not_overriden: true
+  dep :regulome, auto_regulation_weight: -1
+  task_alias :evaluate_knocktf, SaezLab, :evaluate_knocktf, "SaezLab#regulome" => :regulome
 
   dep :ExTRI2_clean
   dep :evaluate_knocktf, not_overriden: true, canfail:true do |jobname,options,dependencies|
@@ -144,13 +144,21 @@ module ExTRI2
   dep :CollecTRI2_pre
   task_alias :database_sweep, SaezLab, :database_sweep, "ExTRI#CollecTRI" => :CollecTRI2_pre
 
+  dep :CollecTRI2_pre
+  task_alias :database_remove_sweep, SaezLab, :database_remove_sweep, "ExTRI#CollecTRI" => :CollecTRI2_pre
+
+  dep :CollecTRI2_pre
+  task_alias :sweep, SaezLab, :sweep, "ExTRI#CollecTRI" => :CollecTRI2_pre
+
   dep SaezLab, :database_sweep
   dep :database_sweep
+  dep :evaluate_knocktf, databases: ExTRI::DATABASES - ['ExTRI']
   task full_database_sweep: :tsv do
-    orig, new = dependencies.collect{|dep| dep.load }
+    orig, new, curated = dependencies.collect{|dep| dep.load }
 
     new["CollecTRI2"] = new['CollecTRI']
     new["ExTRI2"] = new['ExTRI']
+    new['Curated'] = curated.values_at *new.fields
 
     new.merge orig
   end
