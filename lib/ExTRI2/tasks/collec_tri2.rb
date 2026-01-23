@@ -32,8 +32,9 @@ module ExTRI2
     tsv.fields = tsv.fields.collect{|f| f.sub('ExTRI', 'ExTRI2')}
 
     tsv.process '[ExTRI2] Transcription Factor Type' do |v,k,values|
+      v = v.first if Array === v
       tf = values.first.first
-      tf_type[tf]
+      (v.nil? || v.empty?) ? tf_type[tf] : v
     end
 
     tsv.process '[ExTRI2] present' do |v|

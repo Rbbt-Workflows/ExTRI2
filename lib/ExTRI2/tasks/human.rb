@@ -194,7 +194,7 @@ module ExTRI2
     tg_off_pos = parser.fields.index 'Gene offset'
     score_pos = parser.fields.index('TRI score') || parser.fields.index('Valid score')
     mor_pos = parser.fields.index 'MoR'
-    type_pos = parser.fields.index 'human_TF_type' || parser.fields.index("TF_yype")
+    type_pos = parser.fields.index 'human_TF_type' || parser.fields.index("TF_type")
 
     traverse parser, into: dumper do |k,values|
       #text, tf_text, tg_text, tfs, tgs, tf_off, tg_off, mutation, mutation_off, score, valid, mor_score, mor = values
@@ -215,7 +215,6 @@ module ExTRI2
         type = tf_type[tf] if type == ''
         next if tf == 'None'
 
-        next unless %w(dbTF coTF).include? type
         next if only_authoritative_tfs && ! authoritative_tfs.include?(tf)
         tgs.split(";").uniq.each do |tg|
           next if tg == 'None'
