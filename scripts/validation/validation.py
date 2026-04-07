@@ -49,7 +49,6 @@ def load_config() -> dict:
     config['stage7_validated_p']             = VALIDATED_P + 'stage7_to_validate_AL.txt'
     
     # To validate
-    # TODO - Add how were those first 3 created.
     config['stage1_dbTF_to_validate_p']          = TO_VALIDATE_P + '04_28_sentences_to_validate.tsv'
     config['stage2_dbTF_to_validate_p']          = TO_VALIDATE_P + '07_24_sentences_to_validate_2.tsv'
     config['stage3_dbTF_to_validate_p']          = TO_VALIDATE_P + '07_28_sentences_to_validate_3.tsv'

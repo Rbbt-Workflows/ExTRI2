@@ -685,7 +685,6 @@ def filter_inconsistent_tf_tg_mappings(df, splitter=';'):
     """
     Removes rows where TF/TG Symbol already contains the splitter, 
     making TF ID and TF Symbol lengths inconsistent.
-    # TODO - fix upstream so this is not needed.
     """
     for T in ['TF', 'TG']:
         cols = [f'{T} Id', f'{T} Symbol']

@@ -25,22 +25,27 @@ def load_config() -> dict:
 
     # Other tables
     config['manually_retrieved_TF_orthologs_p'] = DATA_P + 'postprocessing/TFs_with_missing_human_orthologs_manual.tsv'
-    config['discarded_sents_p']    = DATA_P + 'postprocessing/tables/discarded_sents.tsv'
-    config['nfkb_ap1_discarded_p'] = DATA_P + 'postprocessing/tables/NFKB_AP1_discarded_sents.tsv'
-    config['orthologs_p']          = DATA_P + 'postprocessing/tables/orthologs_final.tsv'
-    config['all_human_TGs_p']      = DATA_P + 'external/all_human_genes.tsv'
-    config['all_TFs_p']            = 'tables/all_TFs.tsv'
+    config['discarded_sents_p']     = DATA_P + 'postprocessing/tables/discarded_sents.tsv'
+    config['nfkb_ap1_discarded_p']  = DATA_P + 'postprocessing/tables/NFKB_AP1_discarded_sents.tsv'
+    config['orthologs_p']           = DATA_P + 'postprocessing/tables/orthologs_final.tsv'
+    config['all_TFs_p']             = DATA_P + 'postprocessing/tables/all_TFs.tsv'
+
+    # External data
+    config['all_human_TGs_p']       = DATA_P + 'external/all_human_genes.tsv'
+    config['extri1_p']              = DATA_P + 'external/extri1.xlsx' # Downloaded from ExTRI paper supplementary file 1
 
     # Tables included in the paper
-    config['paper_tables_p'] = DATA_P + 'paper_tables/'
+    config['paper_tables_p']        = DATA_P + 'paper_tables/'
     config['all_considered_TFs_p']  = config['paper_tables_p'] + 'all_considered_TFs.tsv'
     config['TFs_in_ExTRI2_p']       = config['paper_tables_p'] + 'TFs_in_ExTRI2.tsv'
     config['paper_ExTRI2_p']        = config['paper_tables_p'] + 'ExTRI2_final_resource.tsv.gz'
     config['paper_validated_p']     = config['paper_tables_p'] + 'validated_sentences.tsv'
-    config['NTNU_dataset_p']        = config['paper_tables_p'] + 'NTNU_training_dataset.tsv'
+    config['training_dataset_p']    = config['paper_tables_p'] + 'NTNU_training_dataset.tsv'
+    config['ntnu_curated_p']        = config['paper_tables_p'] + 'valid_tris_with_sentences.tsv'
     config['all_discarded_sents_p'] = config['paper_tables_p'] + 'discarded_sents.tsv'
     config['paper_orthologs_p']     = config['paper_tables_p'] + 'orthologs_final.tsv'
-    config['collectri2_p']             = config['paper_tables_p'] + 'CollecTRI2.tsv.gz'
+    config['collectri2_p']          = config['paper_tables_p'] + 'CollecTRI2.tsv.gz'
+
 
     return config
 
@@ -177,7 +182,6 @@ def create_paper_TF_tables(ExTRI2_df: pd.DataFrame, TFs_df: pd.DataFrame, config
         return tf_types[0]
 
     # Get TFs that appear in ExTRI2 at least once
-    # TODO - For some reason I was also considering TG IDs. Removed them now, but what implications will this have?
     # geneIDs_in_ExTRI2 = {id for col in ['TF Id', 'TG Id'] for ids in ExTRI2_df[col].unique() for id in ids.split(';')}
     geneIDs_in_ExTRI2 = {id for ids in ExTRI2_df['TF Id'].unique() for id in ids.split(';')}
     TFs_df["In ExTRI2"] = TFs_df['Gene ID'].isin(geneIDs_in_ExTRI2)
@@ -199,8 +203,6 @@ def create_paper_TF_tables(ExTRI2_df: pd.DataFrame, TFs_df: pd.DataFrame, config
         .apply(resolve_human_tf_type).to_dict()
     )
     TFs_in_ExTRI2['human_TF_type'] = TFs_in_ExTRI2['human_gene_ID'].map(tf_type_map)
-
-    # TODO I might need to add the human TF type. See what I can do automatically, then manually add the rest, if needed
 
     # Save the table
     TFs_in_ExTRI2.to_csv(config['TFs_in_ExTRI2_p'], sep="\t", index=False)
