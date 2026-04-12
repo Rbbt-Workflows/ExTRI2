@@ -39,7 +39,7 @@ truncate_bioc() {
 
 
 # Activate python environment
-source .bioc/bin/activate
+# source .bioc/bin/activate
 
 # Get input and output directories from stdin
 if [ "$#" -ne 2 ]; then
@@ -84,6 +84,11 @@ for INPUT_FILE in "$INPUT_BIOC_DIR"/*; do
             # Conversion succeeded
             break
         elif [ $exit_status -eq 1 ]; then
+	    if [ -z $error_PMID ]; then
+		# PMID is nonexistant. I assume it is the end of the file?
+		echo "$FILE_NAME:Empty PMID" >> $PROBLEMATIC_PMIDS_FILE
+		break
+            fi
             # If AssertionError, remove problematic PMID from collection and save it into PROBLEMATIC_PMIDS_FILE
             echo "$FILE_NAME: Processing failed due to PMID: $error_PMID. Removing and trying again."
             grep -v "$error_PMID" truncated_bioc > temp_file && mv temp_file truncated_bioc
