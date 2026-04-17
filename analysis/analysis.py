@@ -29,6 +29,8 @@ def load_config() -> dict:
     config['nfkb_ap1_discarded_p']  = DATA_P + 'postprocessing/tables/NFKB_AP1_discarded_sents.tsv'
     config['orthologs_p']           = DATA_P + 'postprocessing/tables/orthologs_final.tsv'
     config['all_TFs_p']             = DATA_P + 'postprocessing/tables/all_TFs.tsv'
+    config['pubtator3_gene_ids_p']  = DATA_P + 'preprocessing/pubtator_gene_ids.txt'
+
 
     # External data
     config['all_human_TGs_p']       = DATA_P + 'external/all_human_genes.tsv'
@@ -41,11 +43,11 @@ def load_config() -> dict:
     config['paper_ExTRI2_p']        = config['paper_tables_p'] + 'ExTRI2_final_resource.tsv.gz'
     config['paper_validated_p']     = config['paper_tables_p'] + 'validated_sentences.tsv'
     config['training_dataset_p']    = config['paper_tables_p'] + 'NTNU_training_dataset.tsv'
-    config['ntnu_curated_p']        = config['paper_tables_p'] + 'valid_tris_with_sentences.tsv'
+    config['ntnu_curated_p']        = config['paper_tables_p'] + 'valid_tris_with_sentences.tsv.gz'
     config['all_discarded_sents_p'] = config['paper_tables_p'] + 'discarded_sents.tsv'
     config['paper_orthologs_p']     = config['paper_tables_p'] + 'orthologs_final.tsv'
     config['collectri2_p']          = config['paper_tables_p'] + 'CollecTRI2.tsv.gz'
-
+    config['collectri2_regulome_p'] = config['paper_tables_p'] + 'full_annotated_regulome.tsv.gz'
 
     return config
 
@@ -209,9 +211,36 @@ def create_paper_TF_tables(ExTRI2_df: pd.DataFrame, TFs_df: pd.DataFrame, config
 
     return TFs_df
 
-def main():
-    config = load_config()
+def load_all_human_genes(config: dict):
+    '''
+    Load all human TGs & Add NFKB/AP1 complexes
+    Downloaded from: https://www.ncbi.nlm.nih.gov/datasets/gene/taxon/9606/
+    '''
+
+    # Load all human TGs & preprocess table
+    all_human_genes = pd.read_csv(config['all_human_TGs_p'], sep='\t', header=0, dtype=str)
+    all_human_genes = all_human_genes[['NCBI GeneID', 'Symbol', 'Gene Type', 'Taxonomic Name', 'Description']]
+    all_human_genes.loc[all_human_genes['Gene Type'].isna(), 'Gene Type'] = 'nan'
+
+    # Add AP1 and NFKB complexes
+    all_human_genes = pd.concat([all_human_genes, pd.DataFrame({
+        'NCBI GeneID': ['Complex:AP1', 'Complex:NFKB'], 
+        'Symbol': ['AP1', 'NFKB'],
+        'Description': ['', ''],
+        'Taxonomic Name': ['Homo sapiens', 'Homo sapiens'],
+        'Gene Type': ['PROTEIN_CODING', 'PROTEIN_CODING'],
+        })], ignore_index=True)
+    
+    # Ensure the data is expected: all human, no duplicate IDs
+    assert all_human_genes['Taxonomic Name'].nunique() == 1
+    assert all_human_genes['Taxonomic Name'].unique()[0] == 'Homo sapiens'
+    assert (all_human_genes['NCBI GeneID'].duplicated()).sum() == 0 
+
+    return all_human_genes
+
+
+
+
 
 if __name__ == "__main__":
-
-    main()
+    config = load_config()
