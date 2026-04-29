@@ -1,10 +1,12 @@
 # ExTRI2
 
 ## Overview
-This repository contains the scripts and datasets used for the development of the ExTRI2 pipeline.
+ExTRI2 identifies candidate sentences that describe TF–target interactions from PubTator3-annotated abstracts, classifies whether they are valid TRIs, and assigns an MoR label (Activation, Repression, Undefined).
+
+This repo contains the ExTRI2 workflow, training code for the TRI/MoR classifiers, preprocessing/postprocessing utilities, and analysis used in the paper.
 
 ## Setup
-Create the environment to run the scripts. We used python=3.12
+Create a Python environment and install dependencies for the main pipeline. We used python=3.12
 
 ```
 python -m venv .extri2_venv
@@ -13,76 +15,105 @@ pip install -r requirements.txt
 python -m ipykernel install --user --name=extri2_venv
 ```
 
-- [ ] Explain how to setup RBBT
+RBBT setup: please follow the official installation docs for your platform. Once installed, you can run workflows from this repository. Useful starting points:
+- RBBT: https://github.com/mikisvaz/rbbt
+- Workflows guide: https://github.com/mikisvaz/rbbt/wiki/Workflows
 
-## Structure
-- `workflow.rb`. Main script to obtain TRI sentences from a folder of PubTator files.
-- `classifiers_training/`. Standalone folder used to obtain the TRI and MoR classifiers to use in `workflow.rb`. See the `README` inside the folder for a more detailed explanation.
-- `scripts/` All other scripts to aid the main `worklow.rb` one, including:
-  - **Postprocessing:** 
-    - `postprocessing/` to prepare the input for the main script, 
-    - `classifiers_training` to prepare the data to train the classifiers.
-  - **Preprocessing:**
-    - `proprocessing` to convert the output to the final ExTRI2 dataset
-    - `validation` to prepare the validation sets to manually validate
-- `data/` All raw and intermediate files required to run the workflow. See more information in the `README` inside the folder.
-- `results/` contains the raw and final ExTRI2 resource, and the validated sentences.
-- `analysis/` contains all analysis of the ExTRI2 dataset used for the ExTRI2 paper
+
+## Quickstart
+1) **Prepare inputs for ExTRI2**
+```
+# Build TF list tf_entrez_code.list
+cd scripts/preprocessing/
+jupyter nbconvert --to notebook --execute get_NCBI_TF_IDs.ipynb
+
+# Download PubTator3 files and prepare them for ExTRI2
+cd ../../
+./scripts/preprocessing/get_all_pubtators.sh
+python3 scripts/preprocessing/prepare_pubtator_for_ExTRI2.py
+```
+
+2) **Provide models**
+Train models following `classifiers_training/README.md`, or use existing ones. ExTRI2 can accept either:
+- Model names registered in RBBT (e.g. `TRI_model`, `MoR_model`), or
+- Absolute paths to the exported model directories.
+
+3) **Run the workflow**
+List available tasks and options:
+```
+rbbt workflow.rb --help
+```
+
+Run on a single PubTator file (example):
+```
+rbbt workflow.rb tri_candidates --pubtator_file examples/tri_candidates/pubtator_file
+rbbt workflow.rb tri_sentences --pubtator_file examples/tri_candidates/pubtator_file --tri_model /path/to/TRI_model
+rbbt workflow.rb tri_MoR --pubtator_file examples/tri_candidates/pubtator_file --mor_model /path/to/MoR_model
+```
+
+Batch run over all `.pubtator` files detected by your RBBT data path:
+```
+rbbt workflow.rb ExTRI2
+```
+
+4) **Postprocessing**
+Convert workflow outputs into the final ExTRI2 dataset and apply renormalisations:
+```
+cd scripts/postprocessing/
+python postprocessing.py
+
+cd ../../analysis/
+jupyter nbconvert --to notebook --execute repo_to_paper.ipynb
+
+```
+
+## Training the Classifiers
+- Environment (Python 3.11 recommended for training):
+
+```
+cd classifiers_training/
+python3 -m venv .clf_venv
+source .clf_venv/bin/activate
+pip install -r requirements.txt
+python3 -m ipykernel install --user --name extri2-classifiers
+```
+
+- Train and compare models:
+
+```
+python TRI_train.py -h
+python MoR_train.py -h
+```
+
+See `analysis/classifiers_comparison.ipynb` for model selection and `scripts/classifiers_training/` notebooks to prepare and refine training data:
+    - `prepare_reannotation_Excels.ipynb` prepares the sentences to revise.
+    - `update_tri_sentences.ipynb` and `make_train_data.ipynb` update the datasets and prepare the files used for training the models.
+- See `classifiers_training/README.md` for details on training and model selection.
 
 
 ## Steps to obtain the results:
 The final ExTRI2 dataset required training the classifiers and improving the training dataset, preparing files for the `workflow.rb`, postprocessing the resulting files, and preparing sentences for validation. This was achieved by running the following scripts:
 
-- **Classifiers training:** 
-    - Classifiers were trained inside the folder `classifiers_training/` (see `README` there). 
-    - The best performing model was chosen with `analysis/classifiers_comparison.ipynb`.
-    - Classifier outputs were used to retroactively detect sentences to revise and improve the training dataset. Inside `scripts/classifiers_training`:
-        - `prepare_reannotation_Excels.ipynb` prepares the sentences to revise.
-        - `update_tri_sentences.ipynb` and `make_train_data.ipynb` update the datasets and prepare the files used for training the models.
-- **Preprocessing:**
-  - `preprocessing/get_NCBI_TF_IDs.ipynb` obtains the `tf_entrez_code.list` which determines which Gene IDs are considered as TFs
-  - `preprocessing/prepare_pubtator_for_ExTRI2.ipynb`
-
-
-
-## Preprocessing
-Obtaining the files and models required to run the main ExTRI2 workflow: 
-1. `data/tf_entrez_code.list` a list of all dbTFs & coTFs. Obtained through running `scripts/preprocessing/get_NCBI_TF_IDs.ipynb`.
-2. `data/pubtator/` with all PubMed abstracts containing TFs from the above list, in Pubtator format. To obtain, run:
-
-```
-cd scripts/preprocessing/
-./get_all_pubtators.sh
-python prepare_pubtator_for_ExTRI2.py
-```
-
-3. `TRI_classifier` and `MoR_classifier` models to classify the sentences. 
-- [ ] Specify where to find these classifiers
-
-
-## Workflow
-Run `workflow.rb` to get all candidate sentences to contain a TRI (Transcription Regulation Interation) along their MoR (Mode of Regulation). To run, use:
-
-```
-rbbt workflow.rb
-# TODO - Miguel - What was the code exactly? 
-```
-
-## Postprocessing
-Check `scripts/postprocessing/prepare_ExTRI2_resource.ipynb` for an explanation on how was the final ExTRI2 resource created.
 
 ## Analysis
 `analysis/repo_to_paper.ipynb` contains all analysis and figures created for the paper, as well as links to scripts used, divided by each of the paper's sections.
 
 
-# Environments
-How to set up the .general_env (used to run all scripts but classifiers training)
-```
-python3 -m venv .general_env
-source .general_venv/bin/activate/
-pip install ipykernel
-python3 -m ipykernel install --user --name .general_env
-pip install pandas matplotlib torch biopython
-```
+## Repository structure
+- `workflow.rb`: RBBT workflow to obtain TRI sentences and MoR labels from PubTator files.
+- `classifiers_training/`: Code and data to train the TRI and MoR classifiers. See `classifiers_training/README.md` for details.
+- `scripts/`: Helper scripts.
+  - `preprocessing/`: Obtain TF IDs, fetch PubTator files, and prepare input.
+  - `postprocessing/`: Convert workflow outputs into the final ExTRI2 dataset and perform renormalisations.
+  - `validation/`: Prepare and summarise manual validation sets.
+- `data/`: Raw and intermediate files required to run the workflow (see `data/README.md`).
+- `analysis/`: Notebooks and scripts for figures and comparisons used in the paper.
 
-- [ ] Ensure ^ is complete & explain classifiers_training env too
+
+## Citation
+If you use ExTRI2 in your work, please cite:
+Fàbrega, N., Thommesen, L., Valencia, A., Lægreid, A., Vazquez, M.  
+*ExTRI2: Harnessing Transformers for Enhanced Mining of Transcription Regulation Interactions* (under review).
+
+## License
+This project is licensed under the terms in `LICENSE`.
