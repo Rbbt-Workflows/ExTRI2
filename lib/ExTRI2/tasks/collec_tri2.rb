@@ -41,7 +41,27 @@ module ExTRI2
       v.first == 'ExTRI' ? ['ExTRI2'] : ''
     end
 
-
     tsv
+  end
+
+  dep :CollecTRI2
+  dep :regulome
+  task :full_annotated_regulome => :tsv do
+    tsv = step(:CollecTRI2).load
+    regulome = step(:regulome).load
+
+    regulome.add_field "TF Type" do |k,v|
+      tf, tg, w = v
+      p = [tf, tg] * ":"
+      next if tsv[p].nil?
+      tsv[p]["[ExTRI2] Transcription Factor Type"]
+    end
+
+    regulome.add_field "Auto-regulation" do |k,v|
+      tf, tg, w = v
+      tf == tg ? "Auto-regulation" : ""
+    end
+
+    regulome
   end
 end
