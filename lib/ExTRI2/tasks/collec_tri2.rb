@@ -1,7 +1,7 @@
 Workflow.require_workflow "SaezLab"
 
 module ExTRI2
-  input :source, :select, "Source of ExTRI2", :clean, select_options: %w(comnplete clean clean_no_MoR orig orig_sign extri1)
+  input :source, :select, "Source of ExTRI2", :clean, select_options: %w(complete clean clean_no_MoR orig orig_sign extri1)
   dep :ExTRI2_clean, compute: :produce, remove_auto_regulation: true do |jobname,options|
     case options[:source].to_sym
     when :complete

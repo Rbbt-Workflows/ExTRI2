@@ -27,7 +27,7 @@ module ExTRI2
   #  end
 
   dep :CollecTRI2_pre
-  task_alias :regulome, SaezLab, :regulome, not_overriden: true, filter_valid_tfs: false do |jobname,options,dependencies|
+  task_alias :regulome, SaezLab, :regulome, not_overriden: true do |jobname,options,dependencies|
     collectri2 = dependencies.flatten.first
     options["ExTRI#CollecTRI"] = collectri2 if options[:source].to_s != "extri1"
     {jobname: jobname, inputs: options}
